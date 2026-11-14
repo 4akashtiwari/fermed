@@ -1,0 +1,32 @@
+{
+  "name": "fermed",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Fermed \u2014 a scroll-story renderer. Spec-driven 3D sites that scroll like film and export to MP4.",
+  "bin": {
+    "fermed": "cli/fermed.mjs"
+  },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 4321",
+    "render": "node cli/render.mjs",
+    "new": "node cli/new.mjs",
+    "validate": "node cli/validate.mjs",
+    "inspect": "node cli/inspect.mjs",
+    "lint:style": "node cli/lint-style.mjs",
+    "check": "npm run validate -- specs/demo.json && npm run lint:style -- specs/demo.json"
+  },
+  "dependencies": {
+    "gsap": "^3.13.0",
+    "lenis": "^1.1.20",
+    "three": "^0.169.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "playwright": "^1.48.2",
+    "vite": "^5.4.10"
+  }
+}

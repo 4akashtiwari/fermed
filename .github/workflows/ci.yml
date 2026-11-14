@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  specs:
+    name: validate specs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: schema + storyboard
+        run: |
+          for f in specs/*.json; do
+            [ "$(basename "$f")" = "_template.json" ] && continue
+            node cli/validate.mjs "$f"
+          done
+      - name: style lint
+        run: |
+          for f in specs/*.json; do
+            [ "$(basename "$f")" = "_template.json" ] && continue
+            node cli/lint-style.mjs "$f" --strict
+          done
+      - name: build
+        run: npm run build

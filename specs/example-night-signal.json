@@ -1,0 +1,917 @@
+{
+  "$schema": "../engine/spec.schema.json",
+  "meta": {
+    "title": "Signal — Example Two",
+    "subtitle": "A four-beat explainer using the data-rise pattern",
+    "client": "Fermed",
+    "author": "Visual Line / Fermi",
+    "slug": "signal-example",
+    "brief": "Example spec 2. Shows the night-signal styleset and the data-rise story pattern: a flat grid becomes terrain, bars rise from it, one metric carries the beat, and the resolve pulls back to the whole field. Copy is deliberately minimal."
+  },
+  "styleset": "night-signal",
+  "render": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "exposure": 1.1,
+    "fog": 0.026,
+    "envIntensity": 1.5
+  },
+  "export": {
+    "scrollEase": "inOutCubic",
+    "introHold": 0.4,
+    "outroHold": 1.0
+  },
+  "scenes": [
+    {
+      "id": "surface",
+      "label": "The field is flat",
+      "duration": 5,
+      "transition": "cut",
+      "camera": {
+        "from": {
+          "position": [
+            0,
+            1.2,
+            9.5
+          ],
+          "lookAt": [
+            0,
+            -0.2,
+            0
+          ],
+          "fov": 42
+        },
+        "to": {
+          "position": [
+            0,
+            0.6,
+            6.2
+          ],
+          "lookAt": [
+            0,
+            0.2,
+            0
+          ],
+          "fov": 38
+        },
+        "ease": "power2.inOut"
+      },
+      "elements": [
+        {
+          "id": "field",
+          "shape": "grid",
+          "geometry": {
+            "w": 30,
+            "h": 30,
+            "wSeg": 44,
+            "hSeg": 44
+          },
+          "material": "topographic",
+          "materialOptions": {
+            "opacity": 0.3
+          },
+          "position": [
+            0,
+            -2.0,
+            0
+          ],
+          "rotation": [
+            -1.5708,
+            0,
+            0
+          ],
+          "opacityIn": 0,
+          "enter": [
+            0,
+            0.25
+          ],
+          "hold": true
+        },
+        {
+          "id": "beacon",
+          "shape": "octahedron",
+          "geometry": {
+            "r": 0.28
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 1.2
+          },
+          "transform": {
+            "from": {
+              "position": [
+                0,
+                0.2,
+                0
+              ],
+              "scale": 0.4
+            },
+            "to": {
+              "position": [
+                0,
+                0.9,
+                0
+              ],
+              "scale": 1
+            }
+          },
+          "motion": {
+            "spin": [
+              0.3,
+              0.5,
+              0.1
+            ],
+            "float": {
+              "amp": 0.05,
+              "speed": 1.1
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.1,
+            0.34
+          ]
+        }
+      ],
+      "copy": [
+        {
+          "id": "s1-eyebrow",
+          "kind": "eyebrow",
+          "text": "01 — Surface",
+          "slot": "center-left",
+          "enter": [
+            0.04,
+            0.16
+          ],
+          "exit": [
+            0.46,
+            0.56
+          ]
+        },
+        {
+          "id": "s1-head",
+          "kind": "display",
+          "text": "The signal is already there.",
+          "slot": "center-left",
+          "enter": [
+            0.12,
+            0.36
+          ],
+          "exit": [
+            0.8,
+            0.94
+          ]
+        },
+        {
+          "id": "s1-lead",
+          "kind": "lead",
+          "text": "Four thousand events a second, unlabelled.",
+          "slot": "center-left",
+          "enter": [
+            0.28,
+            0.46
+          ],
+          "exit": [
+            0.84,
+            0.96
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rise",
+      "label": "Bars rise from the field",
+      "duration": 6,
+      "transition": "dip",
+      "camera": {
+        "from": {
+          "position": [
+            -2.6,
+            1.0,
+            6.0
+          ],
+          "lookAt": [
+            0,
+            0.45,
+            0
+          ],
+          "fov": 40
+        },
+        "to": {
+          "position": [
+            2.4,
+            1.6,
+            6.4
+          ],
+          "lookAt": [
+            0,
+            0.75,
+            0
+          ],
+          "fov": 44
+        },
+        "ease": "sine.inOut"
+      },
+      "elements": [
+        {
+          "id": "field",
+          "shape": "grid",
+          "geometry": {
+            "w": 30,
+            "h": 30,
+            "wSeg": 44,
+            "hSeg": 44
+          },
+          "material": "topographic",
+          "materialOptions": {
+            "opacity": 0.24
+          },
+          "position": [
+            0,
+            -2.0,
+            0
+          ],
+          "rotation": [
+            -1.5708,
+            0,
+            0
+          ],
+          "opacity": 0.24,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        },
+        {
+          "id": "beacon",
+          "shape": "octahedron",
+          "geometry": {
+            "r": 0.28
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 1.2
+          },
+          "transform": {
+            "from": {
+              "position": [
+                0,
+                0.9,
+                0
+              ]
+            },
+            "to": {
+              "position": [
+                -2.2,
+                1.4,
+                -0.6
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0.3,
+              0.5,
+              0.1
+            ],
+            "float": {
+              "amp": 0.05,
+              "speed": 1.1
+            }
+          },
+          "opacity": 1,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        },
+        {
+          "id": "bar-1",
+          "shape": "capsule",
+          "geometry": {
+            "r": 0.11,
+            "len": 1.0
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 0.5
+          },
+          "transform": {
+            "from": {
+              "position": [
+                -1.9,
+                -2.0,
+                0.4
+              ],
+              "scale": [
+                1,
+                0.05,
+                1
+              ]
+            },
+            "to": {
+              "position": [
+                -1.9,
+                -1.15,
+                0.4
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.12,
+            0.4
+          ],
+          "hold": true
+        },
+        {
+          "id": "bar-2",
+          "shape": "capsule",
+          "geometry": {
+            "r": 0.11,
+            "len": 1.35
+          },
+          "material": "solid",
+          "materialOptions": {
+            "metalness": 0.25,
+            "roughness": 0.45
+          },
+          "transform": {
+            "from": {
+              "position": [
+                -0.7,
+                -2.0,
+                -0.2
+              ],
+              "scale": [
+                1,
+                0.05,
+                1
+              ]
+            },
+            "to": {
+              "position": [
+                -0.7,
+                -0.95,
+                -0.2
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.2,
+            0.48
+          ],
+          "hold": true
+        },
+        {
+          "id": "bar-3",
+          "shape": "capsule",
+          "geometry": {
+            "r": 0.11,
+            "len": 1.75
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 0.5
+          },
+          "transform": {
+            "from": {
+              "position": [
+                0.6,
+                -2.0,
+                0.1
+              ],
+              "scale": [
+                1,
+                0.05,
+                1
+              ]
+            },
+            "to": {
+              "position": [
+                0.6,
+                -0.55,
+                0.1
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.28,
+            0.56
+          ],
+          "hold": true
+        },
+        {
+          "id": "bar-4",
+          "shape": "capsule",
+          "geometry": {
+            "r": 0.11,
+            "len": 0.85
+          },
+          "material": "solid",
+          "materialOptions": {
+            "metalness": 0.25,
+            "roughness": 0.45
+          },
+          "transform": {
+            "from": {
+              "position": [
+                1.9,
+                -2.0,
+                -0.5
+              ],
+              "scale": [
+                1,
+                0.05,
+                1
+              ]
+            },
+            "to": {
+              "position": [
+                1.9,
+                -1.45,
+                -0.5
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.36,
+            0.64
+          ],
+          "hold": true
+        }
+      ],
+      "copy": [
+        {
+          "id": "s2-head",
+          "kind": "display",
+          "text": "Shape arrives before meaning.",
+          "slot": "top-left",
+          "enter": [
+            0.12,
+            0.38
+          ],
+          "exit": [
+            0.76,
+            0.92
+          ]
+        },
+        {
+          "id": "s2-lead",
+          "kind": "lead",
+          "text": "Count what repeats. The pattern is the product.",
+          "slot": "top-left",
+          "enter": [
+            0.3,
+            0.48
+          ],
+          "exit": [
+            0.82,
+            0.95
+          ]
+        }
+      ],
+      "veilColour": "#04060a"
+    },
+    {
+      "id": "read",
+      "label": "One number carries the beat",
+      "duration": 5,
+      "transition": "dip",
+      "camera": {
+        "from": {
+          "position": [
+            1.9,
+            0.9,
+            7.0
+          ],
+          "lookAt": [
+            0.2,
+            0.05,
+            0
+          ],
+          "fov": 40
+        },
+        "to": {
+          "position": [
+            1.1,
+            1.15,
+            6.2
+          ],
+          "lookAt": [
+            0.15,
+            0.1,
+            0
+          ],
+          "fov": 36
+        },
+        "ease": "power2.inOut"
+      },
+      "elements": [
+        {
+          "id": "bar-3",
+          "shape": "capsule",
+          "geometry": {
+            "r": 0.11,
+            "len": 1.75
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 0.9
+          },
+          "transform": {
+            "from": {
+              "position": [
+                0.6,
+                0.1,
+                0.1
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "to": {
+              "position": [
+                0.4,
+                -0.55,
+                0.1
+              ],
+              "scale": [
+                1.15,
+                1.05,
+                1.15
+              ]
+            }
+          },
+          "opacity": 1,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        },
+        {
+          "id": "beacon",
+          "shape": "octahedron",
+          "geometry": {
+            "r": 0.2
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 1.4
+          },
+          "transform": {
+            "from": {
+              "position": [
+                -2.2,
+                1.4,
+                -0.6
+              ]
+            },
+            "to": {
+              "position": [
+                1.55,
+                2.15,
+                0.6
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0.4,
+              0.6,
+              0.2
+            ],
+            "float": {
+              "amp": 0.04,
+              "speed": 1.4
+            }
+          },
+          "opacity": 1,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        }
+      ],
+      "copy": [
+        {
+          "id": "s3-metric",
+          "kind": "metric",
+          "text": "12",
+          "suffix": "×",
+          "slot": "center-right",
+          "enter": [
+            0.16,
+            0.4
+          ],
+          "exit": [
+            0.72,
+            0.9
+          ]
+        },
+        {
+          "id": "s3-head",
+          "kind": "display",
+          "text": "One column explains the day.",
+          "slot": "center-left",
+          "enter": [
+            0.18,
+            0.42
+          ],
+          "exit": [
+            0.74,
+            0.9
+          ]
+        },
+        {
+          "id": "s3-lead",
+          "kind": "lead",
+          "text": "Everything else is noise.",
+          "slot": "center-left",
+          "enter": [
+            0.36,
+            0.54
+          ],
+          "exit": [
+            0.8,
+            0.94
+          ]
+        }
+      ]
+    },
+    {
+      "id": "resolve",
+      "label": "Pull back to the whole field",
+      "duration": 6,
+      "transition": "fade",
+      "camera": {
+        "from": {
+          "position": [
+            1.1,
+            1.25,
+            6.2
+          ],
+          "lookAt": [
+            0.1,
+            0.55,
+            0
+          ],
+          "fov": 36
+        },
+        "to": {
+          "position": [
+            0,
+            2.6,
+            12.5
+          ],
+          "lookAt": [
+            0,
+            -0.2,
+            0
+          ],
+          "fov": 38
+        },
+        "ease": "power2.out"
+      },
+      "elements": [
+        {
+          "id": "field",
+          "shape": "grid",
+          "geometry": {
+            "w": 34,
+            "h": 34,
+            "wSeg": 48,
+            "hSeg": 48
+          },
+          "material": "topographic",
+          "materialOptions": {
+            "opacity": 0.2
+          },
+          "position": [
+            0,
+            -2.4,
+            0
+          ],
+          "rotation": [
+            -1.5708,
+            0,
+            0
+          ],
+          "opacity": 0.2,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        },
+        {
+          "id": "beacon",
+          "shape": "octahedron",
+          "geometry": {
+            "r": 0.22
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 1.1
+          },
+          "transform": {
+            "from": {
+              "position": [
+                0.42,
+                1.75,
+                0.1
+              ],
+              "scale": 1
+            },
+            "to": {
+              "position": [
+                0,
+                1.1,
+                0
+              ],
+              "scale": 0.8
+            }
+          },
+          "motion": {
+            "spin": [
+              0.2,
+              0.4,
+              0.1
+            ],
+            "float": {
+              "amp": 0.05,
+              "speed": 0.9
+            }
+          },
+          "opacity": 1,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        },
+        {
+          "id": "bar-1",
+          "shape": "capsule",
+          "geometry": {
+            "r": 0.11,
+            "len": 1.0
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 0.5
+          },
+          "transform": {
+            "from": {
+              "position": [
+                -1.9,
+                -0.9,
+                0.4
+              ]
+            },
+            "to": {
+              "position": [
+                -1.9,
+                -1.15,
+                0.4
+              ]
+            }
+          },
+          "opacity": 0.85,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        },
+        {
+          "id": "bar-2",
+          "shape": "capsule",
+          "geometry": {
+            "r": 0.11,
+            "len": 1.35
+          },
+          "material": "solid",
+          "materialOptions": {
+            "metalness": 0.25,
+            "roughness": 0.45
+          },
+          "transform": {
+            "from": {
+              "position": [
+                -0.7,
+                -0.5,
+                -0.2
+              ]
+            },
+            "to": {
+              "position": [
+                -0.7,
+                -0.95,
+                -0.2
+              ]
+            }
+          },
+          "opacity": 0.85,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        },
+        {
+          "id": "bar-4",
+          "shape": "capsule",
+          "geometry": {
+            "r": 0.11,
+            "len": 0.85
+          },
+          "material": "solid",
+          "materialOptions": {
+            "metalness": 0.25,
+            "roughness": 0.45
+          },
+          "transform": {
+            "from": {
+              "position": [
+                1.9,
+                -1.2,
+                -0.5
+              ]
+            },
+            "to": {
+              "position": [
+                1.9,
+                -1.45,
+                -0.5
+              ]
+            }
+          },
+          "opacity": 0.85,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        }
+      ],
+      "copy": [
+        {
+          "id": "s4-head",
+          "kind": "display",
+          "text": "Read the field, not the spike.",
+          "slot": "bottom-center",
+          "enter": [
+            0.26,
+            0.48
+          ],
+          "exit": [
+            0.88,
+            1
+          ]
+        },
+        {
+          "id": "s4-lead",
+          "kind": "lead",
+          "text": "Same spec, same frames, every time.",
+          "slot": "bottom-center",
+          "enter": [
+            0.42,
+            0.6
+          ],
+          "hold": true
+        }
+      ]
+    }
+  ]
+}

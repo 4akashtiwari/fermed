@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Fermed</title>
+    <meta name="description" content="Fermed — spec-driven 3D scroll stories, rendered to the web and to MP4." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0a0b'/%3E%3Cpath d='M9 23V9h13v4h-8v2.5h6.5v4H14V23z' fill='%23e8a33d'/%3E%3C/svg%3E" />
+    <style>
+      html, body { margin: 0; padding: 0; background: #000; }
+      body { overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+      #fermed-fallback {
+        position: fixed; inset: 0; display: grid; place-items: center;
+        font: 14px/1.6 ui-monospace, monospace; color: #888; background: #000;
+        padding: 2rem; text-align: center; z-index: 99;
+      }
+      #fermed-fallback[hidden] { display: none; }
+      #fermed-fallback code { color: #e8a33d; }
+    </style>
+  </head>
+  <body>
+    <div id="fermed-fallback" hidden>
+      <div>
+        <p><strong style="color:#f4f1ea">Fermed couldn’t start.</strong></p>
+        <p id="fermed-error"></p>
+        <p>Check the browser console, or run <code>npm run validate</code>.</p>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

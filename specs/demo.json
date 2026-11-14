@@ -1,0 +1,1518 @@
+{
+  "$schema": "../engine/spec.schema.json",
+  "meta": {
+    "title": "Fermed — Story Zero",
+    "subtitle": "A reference story that proves the whole pipeline",
+    "client": "Fermed",
+    "author": "Visual Line / Fermi",
+    "slug": "story-zero",
+    "brief": "Reference spec. Every scene demonstrates one story beat: establish, orbit, descend, reveal, resolve. Workers should copy this file and replace content, never structure."
+  },
+  "styleset": "editorial-noir",
+  "render": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "exposure": 1.05,
+    "fog": 0.028
+  },
+  "scroll": {
+    "pxPerSecond": 170,
+    "lerpDuration": 1.15
+  },
+  "export": {
+    "scrollEase": "inOutCubic",
+    "introHold": 0.4,
+    "outroHold": 1.0,
+    "crf": 18
+  },
+  "scenes": [
+    {
+      "id": "establish",
+      "label": "Establish — the object exists",
+      "duration": 5,
+      "transition": "cut",
+      "camera": {
+        "from": {
+          "position": [
+            0,
+            0.55,
+            8.4
+          ],
+          "lookAt": [
+            0,
+            0,
+            0
+          ],
+          "fov": 40
+        },
+        "to": {
+          "position": [
+            0.15,
+            0.2,
+            4.6
+          ],
+          "lookAt": [
+            0,
+            0,
+            0
+          ],
+          "fov": 36
+        },
+        "ease": "power2.inOut"
+      },
+      "elements": [
+        {
+          "id": "core",
+          "label": "hero icosahedron",
+          "shape": "icosahedron",
+          "geometry": {
+            "r": 1.05,
+            "detail": 1
+          },
+          "material": "solid",
+          "materialOptions": {
+            "metalness": 0.55,
+            "roughness": 0.28
+          },
+          "transform": {
+            "from": {
+              "scale": 0.72,
+              "rotation": [
+                0,
+                0,
+                0
+              ]
+            },
+            "to": {
+              "scale": 1,
+              "rotation": [
+                0.3,
+                1.1,
+                0.12
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0.02,
+              0.16,
+              0
+            ],
+            "float": {
+              "amp": 0.07,
+              "speed": 0.8
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0,
+            0.22
+          ]
+        },
+        {
+          "id": "core-wire",
+          "label": "wire cage over the core",
+          "shape": "icosahedron",
+          "geometry": {
+            "r": 1.42,
+            "detail": 1
+          },
+          "material": "wire",
+          "materialOptions": {
+            "opacity": 0.4
+          },
+          "transform": {
+            "from": {
+              "rotation": [
+                0,
+                0,
+                0
+              ]
+            },
+            "to": {
+              "rotation": [
+                0.2,
+                -0.7,
+                0
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0,
+              -0.08,
+              0.03
+            ]
+          },
+          "opacityOut": 0.18,
+          "exit": [
+            0.8,
+            1
+          ]
+        },
+        {
+          "id": "ring-a",
+          "label": "inner orbit ring",
+          "shape": "torus",
+          "geometry": {
+            "r": 1.9,
+            "tube": 0.012,
+            "tubularSeg": 160
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 0.5,
+            "roughness": 0.3
+          },
+          "transform": {
+            "from": {
+              "rotation": [
+                1.35,
+                0,
+                0
+              ]
+            },
+            "to": {
+              "rotation": [
+                1.2,
+                0.6,
+                0.1
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0,
+              0.05,
+              0
+            ]
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.18,
+            0.5
+          ]
+        },
+        {
+          "id": "ring-b",
+          "label": "outer orbit ring",
+          "shape": "torus",
+          "geometry": {
+            "r": 2.6,
+            "tube": 0.008,
+            "tubularSeg": 180
+          },
+          "material": "wire",
+          "materialOptions": {
+            "opacity": 0.3
+          },
+          "transform": {
+            "from": {
+              "rotation": [
+                0.4,
+                0,
+                1.2
+              ]
+            },
+            "to": {
+              "rotation": [
+                0.6,
+                0.4,
+                1.0
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0.02,
+              0.03,
+              0
+            ]
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.3,
+            0.65
+          ]
+        },
+        {
+          "id": "floor",
+          "label": "topographic floor",
+          "shape": "grid",
+          "geometry": {
+            "w": 34,
+            "h": 34,
+            "wSeg": 46,
+            "hSeg": 46
+          },
+          "material": "topographic",
+          "materialOptions": {
+            "opacity": 0.22
+          },
+          "position": [
+            0,
+            -2.15,
+            0
+          ],
+          "rotation": [
+            -1.5708,
+            0,
+            0
+          ],
+          "opacityIn": 0,
+          "enter": [
+            0.1,
+            0.55
+          ],
+          "hold": true
+        }
+      ],
+      "copy": [
+        {
+          "id": "s1-eyebrow",
+          "kind": "eyebrow",
+          "text": "Fermed / Story Zero",
+          "slot": "center-left",
+          "enter": [
+            0.05,
+            0.2
+          ],
+          "exit": [
+            0.45,
+            0.55
+          ]
+        },
+        {
+          "id": "s1-head",
+          "kind": "display",
+          "text": "Stories that hold their shape.",
+          "slot": "center-left",
+          "enter": [
+            0.14,
+            0.46
+          ],
+          "exit": [
+            0.78,
+            0.92
+          ]
+        },
+        {
+          "id": "s1-lead",
+          "kind": "lead",
+          "text": "A spec goes in. A structure comes out.",
+          "slot": "center-left",
+          "enter": [
+            0.3,
+            0.5
+          ],
+          "exit": [
+            0.86,
+            0.96
+          ]
+        }
+      ]
+    },
+    {
+      "id": "orbit",
+      "label": "Orbit — the camera earns the object",
+      "duration": 5.5,
+      "transition": "dip",
+      "camera": {
+        "from": {
+          "position": [
+            3.9,
+            1.15,
+            2.9
+          ],
+          "lookAt": [
+            0,
+            0.1,
+            0
+          ],
+          "fov": 38
+        },
+        "to": {
+          "position": [
+            -3.4,
+            0.35,
+            3.4
+          ],
+          "lookAt": [
+            0,
+            0.05,
+            0
+          ],
+          "fov": 44
+        },
+        "ease": "sine.inOut"
+      },
+      "elements": [
+        {
+          "id": "core",
+          "shape": "icosahedron",
+          "geometry": {
+            "r": 1.05,
+            "detail": 1
+          },
+          "material": "solid",
+          "materialOptions": {
+            "metalness": 0.55,
+            "roughness": 0.28
+          },
+          "transform": {
+            "from": {
+              "scale": 1,
+              "rotation": [
+                0.3,
+                1.1,
+                0.12
+              ]
+            },
+            "to": {
+              "scale": 0.92,
+              "rotation": [
+                0.6,
+                2.4,
+                0.2
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0.02,
+              0.24,
+              0
+            ],
+            "float": {
+              "amp": 0.07,
+              "speed": 0.8
+            }
+          },
+          "opacity": 1,
+          "enter": [
+            0,
+            0.01
+          ]
+        },
+        {
+          "id": "core-wire",
+          "shape": "icosahedron",
+          "geometry": {
+            "r": 1.42,
+            "detail": 1
+          },
+          "material": "wire",
+          "materialOptions": {
+            "opacity": 0.35
+          },
+          "transform": {
+            "from": {
+              "rotation": [
+                0.2,
+                -0.7,
+                0
+              ]
+            },
+            "to": {
+              "rotation": [
+                0.9,
+                1.2,
+                0.3
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0,
+              -0.12,
+              0.03
+            ]
+          },
+          "opacityIn": 0,
+          "opacity": 0.35,
+          "enter": [
+            0.05,
+            0.25
+          ],
+          "hold": true
+        },
+        {
+          "id": "ring-a",
+          "shape": "torus",
+          "geometry": {
+            "r": 1.9,
+            "tube": 0.012,
+            "tubularSeg": 160
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 0.5,
+            "roughness": 0.3
+          },
+          "transform": {
+            "from": {
+              "rotation": [
+                1.2,
+                0.6,
+                0.1
+              ]
+            },
+            "to": {
+              "rotation": [
+                1.55,
+                1.4,
+                0.35
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0,
+              0.09,
+              0
+            ]
+          },
+          "opacity": 1,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        },
+        {
+          "id": "ring-b",
+          "shape": "torus",
+          "geometry": {
+            "r": 2.6,
+            "tube": 0.008,
+            "tubularSeg": 180
+          },
+          "material": "wire",
+          "materialOptions": {
+            "opacity": 0.3
+          },
+          "transform": {
+            "from": {
+              "rotation": [
+                0.6,
+                0.4,
+                1.0
+              ]
+            },
+            "to": {
+              "rotation": [
+                0.15,
+                1.1,
+                1.45
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0.02,
+              0.04,
+              0
+            ]
+          },
+          "opacity": 0.3,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        },
+        {
+          "id": "satellite-1",
+          "label": "glass bead, first orbit",
+          "shape": "sphere",
+          "geometry": {
+            "r": 0.17,
+            "widthSeg": 32,
+            "heightSeg": 20
+          },
+          "material": "glass",
+          "transform": {
+            "from": {
+              "position": [
+                2.2,
+                0.5,
+                0
+              ],
+              "scale": 0.4
+            },
+            "to": {
+              "position": [
+                1.8,
+                -0.4,
+                0.9
+              ],
+              "scale": 1
+            }
+          },
+          "motion": {
+            "orbit": {
+              "radius": 2.1,
+              "speed": 0.32
+            },
+            "pulse": {
+              "amp": 0.05,
+              "speed": 2.1
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.15,
+            0.4
+          ],
+          "hold": true
+        },
+        {
+          "id": "satellite-2",
+          "label": "accent bead, counter-orbit",
+          "shape": "octahedron",
+          "geometry": {
+            "r": 0.16
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 0.9
+          },
+          "transform": {
+            "from": {
+              "position": [
+                -1.6,
+                -0.8,
+                0.6
+              ],
+              "scale": 0.3
+            },
+            "to": {
+              "position": [
+                -2.3,
+                0.3,
+                -0.8
+              ],
+              "scale": 1
+            }
+          },
+          "motion": {
+            "orbit": {
+              "radius": 2.5,
+              "speed": -0.21
+            },
+            "spin": [
+              0.6,
+              0.3,
+              0.2
+            ]
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.25,
+            0.5
+          ],
+          "hold": true
+        },
+        {
+          "id": "floor",
+          "shape": "grid",
+          "geometry": {
+            "w": 34,
+            "h": 34,
+            "wSeg": 46,
+            "hSeg": 46
+          },
+          "material": "ghost",
+          "materialOptions": {
+            "opacity": 0.14
+          },
+          "position": [
+            0,
+            -2.15,
+            0
+          ],
+          "rotation": [
+            -1.5708,
+            0,
+            0
+          ],
+          "opacity": 0.22,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        }
+      ],
+      "copy": [
+        {
+          "id": "s2-eyebrow",
+          "kind": "eyebrow",
+          "text": "02 — Orbit",
+          "slot": "bottom-right",
+          "enter": [
+            0.02,
+            0.16
+          ],
+          "exit": [
+            0.86,
+            0.98
+          ]
+        },
+        {
+          "id": "s2-head",
+          "kind": "display",
+          "text": "Every beat is a camera move.",
+          "slot": "top-left",
+          "enter": [
+            0.1,
+            0.38
+          ],
+          "exit": [
+            0.74,
+            0.9
+          ]
+        },
+        {
+          "id": "s2-lead",
+          "kind": "lead",
+          "text": "Camera position, look-at and field of view travel together.",
+          "slot": "top-left",
+          "enter": [
+            0.24,
+            0.46
+          ],
+          "exit": [
+            0.8,
+            0.94
+          ]
+        }
+      ]
+    },
+    {
+      "id": "descend",
+      "label": "Descend — go inside the object",
+      "duration": 5,
+      "transition": "dip",
+      "veilColour": "#050506",
+      "camera": {
+        "from": {
+          "position": [
+            0,
+            0.1,
+            3.2
+          ],
+          "lookAt": [
+            0,
+            0,
+            0
+          ],
+          "fov": 38
+        },
+        "to": {
+          "position": [
+            0,
+            0.02,
+            0.35
+          ],
+          "lookAt": [
+            0,
+            0,
+            -1.4
+          ],
+          "fov": 68
+        },
+        "ease": "power2.inOut",
+        "shake": 0.18
+      },
+      "elements": [
+        {
+          "id": "core",
+          "shape": "icosahedron",
+          "geometry": {
+            "r": 1.05,
+            "detail": 1
+          },
+          "material": "wire",
+          "materialOptions": {
+            "opacity": 0.5
+          },
+          "transform": {
+            "from": {
+              "rotation": [
+                0.6,
+                2.4,
+                0.2
+              ],
+              "scale": 0.92
+            },
+            "to": {
+              "rotation": [
+                1.2,
+                3.6,
+                0.5
+              ],
+              "scale": 1.6
+            }
+          },
+          "motion": {
+            "spin": [
+              0,
+              0.3,
+              0
+            ]
+          },
+          "opacity": 0.5,
+          "enter": [
+            0,
+            0.05
+          ],
+          "hold": true
+        },
+        {
+          "id": "tunnel",
+          "label": "helix tube — the path of the camera",
+          "shape": "tube",
+          "geometry": {
+            "turns": 2.5,
+            "r": 1.5,
+            "h": 9,
+            "tubeR": 0.028,
+            "samples": 260
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 0.7,
+            "roughness": 0.4
+          },
+          "transform": {
+            "from": {
+              "rotation": [
+                1.5708,
+                0,
+                0
+              ],
+              "position": [
+                0,
+                0,
+                -2
+              ]
+            },
+            "to": {
+              "rotation": [
+                1.5708,
+                0.5,
+                0
+              ],
+              "position": [
+                0,
+                0,
+                -3.2
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0,
+              0,
+              0.06
+            ]
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.06,
+            0.3
+          ],
+          "hold": true
+        },
+        {
+          "id": "dust",
+          "label": "glass shards drifting past",
+          "shape": "tetrahedron",
+          "geometry": {
+            "r": 0.09
+          },
+          "material": "glass",
+          "transform": {
+            "from": {
+              "position": [
+                -0.9,
+                0.5,
+                -1.2
+              ],
+              "scale": 0.6
+            },
+            "to": {
+              "position": [
+                -1.6,
+                0.9,
+                -6
+              ],
+              "scale": 1.4
+            }
+          },
+          "motion": {
+            "spin": [
+              0.4,
+              0.9,
+              0.2
+            ],
+            "drift": {
+              "amp": 0.18,
+              "speed": 0.7
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.1,
+            0.3
+          ],
+          "hold": true
+        },
+        {
+          "id": "dust-2",
+          "shape": "tetrahedron",
+          "geometry": {
+            "r": 0.07
+          },
+          "material": "glass",
+          "transform": {
+            "from": {
+              "position": [
+                0.8,
+                -0.4,
+                -0.8
+              ],
+              "scale": 0.5
+            },
+            "to": {
+              "position": [
+                1.5,
+                -0.7,
+                -5.4
+              ],
+              "scale": 1.2
+            }
+          },
+          "motion": {
+            "spin": [
+              0.3,
+              -0.7,
+              0.4
+            ],
+            "drift": {
+              "amp": 0.14,
+              "speed": 0.9
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.14,
+            0.34
+          ],
+          "hold": true
+        },
+        {
+          "id": "dust-3",
+          "shape": "tetrahedron",
+          "geometry": {
+            "r": 0.06
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 1.2
+          },
+          "transform": {
+            "from": {
+              "position": [
+                0.2,
+                0.9,
+                -1.6
+              ],
+              "scale": 0.4
+            },
+            "to": {
+              "position": [
+                0.6,
+                1.3,
+                -6.4
+              ],
+              "scale": 1
+            }
+          },
+          "motion": {
+            "spin": [
+              0.5,
+              0.4,
+              0.3
+            ],
+            "drift": {
+              "amp": 0.1,
+              "speed": 0.5
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.18,
+            0.36
+          ],
+          "hold": true
+        }
+      ],
+      "copy": [
+        {
+          "id": "s3-metric",
+          "kind": "metric",
+          "text": "0.35",
+          "suffix": "m",
+          "slot": "center-right",
+          "enter": [
+            0.16,
+            0.4
+          ],
+          "exit": [
+            0.7,
+            0.88
+          ]
+        },
+        {
+          "id": "s3-head",
+          "kind": "display",
+          "text": "Cross the surface.",
+          "slot": "center-left",
+          "enter": [
+            0.2,
+            0.45
+          ],
+          "exit": [
+            0.72,
+            0.9
+          ]
+        },
+        {
+          "id": "s3-lead",
+          "kind": "lead",
+          "text": "A dolly-in reads as speed.",
+          "slot": "center-left",
+          "enter": [
+            0.3,
+            0.5
+          ],
+          "exit": [
+            0.8,
+            0.94
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reveal",
+      "label": "Reveal — the hero object in macro",
+      "duration": 5,
+      "transition": "dip",
+      "camera": {
+        "from": {
+          "position": [
+            1.6,
+            0.8,
+            2.4
+          ],
+          "lookAt": [
+            0,
+            0,
+            0
+          ],
+          "fov": 52
+        },
+        "to": {
+          "position": [
+            -1.1,
+            0.35,
+            1.5
+          ],
+          "lookAt": [
+            0,
+            0.05,
+            0
+          ],
+          "fov": 42
+        },
+        "ease": "sine.inOut"
+      },
+      "elements": [
+        {
+          "id": "hero-knot",
+          "label": "macro torus knot",
+          "shape": "torusKnot",
+          "geometry": {
+            "r": 0.72,
+            "tube": 0.22,
+            "tubularSeg": 240,
+            "radialSeg": 32
+          },
+          "material": "solid",
+          "materialOptions": {
+            "metalness": 0.85,
+            "roughness": 0.14,
+            "emissiveIntensity": 0.06
+          },
+          "transform": {
+            "from": {
+              "rotation": [
+                0,
+                0,
+                0
+              ],
+              "scale": 0.6
+            },
+            "to": {
+              "rotation": [
+                0.5,
+                1.8,
+                0.35
+              ],
+              "scale": 1
+            }
+          },
+          "motion": {
+            "spin": [
+              0.1,
+              0.28,
+              0.05
+            ]
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.02,
+            0.26
+          ],
+          "hold": true
+        },
+        {
+          "id": "knot-ring",
+          "shape": "torus",
+          "geometry": {
+            "r": 1.55,
+            "tube": 0.01,
+            "tubularSeg": 160
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 0.6
+          },
+          "transform": {
+            "from": {
+              "rotation": [
+                0.4,
+                0,
+                0
+              ]
+            },
+            "to": {
+              "rotation": [
+                0.9,
+                0.7,
+                0.2
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0,
+              0.1,
+              0
+            ]
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.2,
+            0.45
+          ],
+          "hold": true
+        },
+        {
+          "id": "bead-a",
+          "shape": "sphere",
+          "geometry": {
+            "r": 0.1,
+            "widthSeg": 24,
+            "heightSeg": 16
+          },
+          "material": "glass",
+          "motion": {
+            "orbit": {
+              "radius": 1.55,
+              "speed": 0.5
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.3,
+            0.5
+          ],
+          "hold": true
+        },
+        {
+          "id": "bead-b",
+          "shape": "sphere",
+          "geometry": {
+            "r": 0.075,
+            "widthSeg": 24,
+            "heightSeg": 16
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 1.4
+          },
+          "motion": {
+            "orbit": {
+              "radius": 1.55,
+              "speed": -0.42
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.34,
+            0.54
+          ],
+          "hold": true
+        }
+      ],
+      "copy": [
+        {
+          "id": "s4-eyebrow",
+          "kind": "eyebrow",
+          "text": "04 — Macro",
+          "slot": "bottom-left",
+          "enter": [
+            0.04,
+            0.18
+          ],
+          "exit": [
+            0.86,
+            0.98
+          ]
+        },
+        {
+          "id": "s4-head",
+          "kind": "display",
+          "text": "One object. Fully lit.",
+          "slot": "bottom-left",
+          "enter": [
+            0.12,
+            0.36
+          ],
+          "exit": [
+            0.72,
+            0.9
+          ]
+        },
+        {
+          "id": "s4-lead",
+          "kind": "lead",
+          "text": "Metal, glass and emission come from the style set.",
+          "slot": "bottom-left",
+          "enter": [
+            0.26,
+            0.48
+          ],
+          "exit": [
+            0.78,
+            0.92
+          ]
+        }
+      ]
+    },
+    {
+      "id": "resolve",
+      "label": "Resolve — pull back, hand off",
+      "duration": 6,
+      "transition": "dip",
+      "camera": {
+        "from": {
+          "position": [
+            0.4,
+            0.6,
+            3.0
+          ],
+          "lookAt": [
+            0,
+            0.05,
+            0
+          ],
+          "fov": 42
+        },
+        "to": {
+          "position": [
+            0,
+            1.35,
+            9.2
+          ],
+          "lookAt": [
+            0,
+            0.15,
+            0
+          ],
+          "fov": 38
+        },
+        "ease": "power2.out"
+      },
+      "elements": [
+        {
+          "id": "final-core",
+          "shape": "icosahedron",
+          "geometry": {
+            "r": 0.95,
+            "detail": 1
+          },
+          "material": "solid",
+          "materialOptions": {
+            "metalness": 0.6,
+            "roughness": 0.25
+          },
+          "transform": {
+            "from": {
+              "scale": 1,
+              "rotation": [
+                0.4,
+                0,
+                0
+              ]
+            },
+            "to": {
+              "scale": 0.55,
+              "rotation": [
+                0.7,
+                1.4,
+                0.2
+              ]
+            }
+          },
+          "motion": {
+            "spin": [
+              0,
+              0.18,
+              0
+            ],
+            "float": {
+              "amp": 0.06,
+              "speed": 0.7
+            }
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.02,
+            0.2
+          ],
+          "hold": true
+        },
+        {
+          "id": "final-ring-1",
+          "shape": "torus",
+          "geometry": {
+            "r": 2.0,
+            "tube": 0.011,
+            "tubularSeg": 180
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 0.55
+          },
+          "transform": {
+            "from": {
+              "rotation": [
+                1.3,
+                0,
+                0
+              ],
+              "scale": 1
+            },
+            "to": {
+              "rotation": [
+                1.15,
+                0.8,
+                0.15
+              ],
+              "scale": 1.35
+            }
+          },
+          "motion": {
+            "spin": [
+              0,
+              0.06,
+              0
+            ]
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.08,
+            0.34
+          ],
+          "hold": true
+        },
+        {
+          "id": "final-ring-2",
+          "shape": "torus",
+          "geometry": {
+            "r": 2.9,
+            "tube": 0.007,
+            "tubularSeg": 200
+          },
+          "material": "wire",
+          "materialOptions": {
+            "opacity": 0.22
+          },
+          "transform": {
+            "from": {
+              "rotation": [
+                0.5,
+                0.3,
+                1.3
+              ],
+              "scale": 1
+            },
+            "to": {
+              "rotation": [
+                0.3,
+                1.0,
+                1.1
+              ],
+              "scale": 1.5
+            }
+          },
+          "motion": {
+            "spin": [
+              0.01,
+              0.03,
+              0
+            ]
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.14,
+            0.4
+          ],
+          "hold": true
+        },
+        {
+          "id": "final-satellite",
+          "shape": "octahedron",
+          "geometry": {
+            "r": 0.13
+          },
+          "material": "accent",
+          "materialOptions": {
+            "emissiveIntensity": 1.1
+          },
+          "transform": {
+            "from": {
+              "position": [
+                2.0,
+                0,
+                0
+              ],
+              "scale": 0.5
+            },
+            "to": {
+              "position": [
+                2.9,
+                0.4,
+                0
+              ],
+              "scale": 1
+            }
+          },
+          "motion": {
+            "orbit": {
+              "radius": 2.9,
+              "speed": 0.22
+            },
+            "spin": [
+              0.5,
+              0.3,
+              0.1
+            ]
+          },
+          "opacityIn": 0,
+          "enter": [
+            0.22,
+            0.44
+          ],
+          "hold": true
+        },
+        {
+          "id": "final-floor",
+          "shape": "grid",
+          "geometry": {
+            "w": 44,
+            "h": 44,
+            "wSeg": 52,
+            "hSeg": 52
+          },
+          "material": "topographic",
+          "materialOptions": {
+            "opacity": 0.16
+          },
+          "position": [
+            0,
+            -2.4,
+            0
+          ],
+          "rotation": [
+            -1.5708,
+            0,
+            0
+          ],
+          "opacity": 0.16,
+          "enter": [
+            0,
+            0.01
+          ],
+          "hold": true
+        }
+      ],
+      "copy": [
+        {
+          "id": "s5-head",
+          "kind": "display",
+          "text": "Then it hands off.",
+          "slot": "center",
+          "enter": [
+            0.3,
+            0.52
+          ],
+          "exit": [
+            0.9,
+            1
+          ]
+        },
+        {
+          "id": "s5-lead",
+          "kind": "lead",
+          "text": "Same spec. Same frames.",
+          "slot": "center",
+          "enter": [
+            0.44,
+            0.62
+          ],
+          "exit": [
+            0.92,
+            1
+          ]
+        },
+        {
+          "id": "s5-caption",
+          "kind": "lead",
+          "text": "FERMED · RENDERED FROM SPEC",
+          "slot": "bottom-center",
+          "enter": [
+            0.6,
+            0.8
+          ],
+          "hold": true
+        }
+      ]
+    }
+  ]
+}
