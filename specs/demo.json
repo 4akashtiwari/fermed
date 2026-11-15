@@ -1220,15 +1220,15 @@
         {
           "id": "s4-lead",
           "kind": "lead",
-          "text": "Metal, glass and emission come from the style set.",
+          "text": "Metal and glass come from the style set.",
           "slot": "bottom-left",
           "enter": [
             0.26,
-            0.48
+            0.46
           ],
           "exit": [
-            0.78,
-            0.92
+            0.84,
+            0.95
           ]
         }
       ]

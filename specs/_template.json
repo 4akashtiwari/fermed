@@ -129,12 +129,12 @@
           "text": "One supporting sentence a person could say out loud.",
           "slot": "center-left",
           "enter": [
-            0.3,
-            0.5
+            0.28,
+            0.48
           ],
           "exit": [
-            0.86,
-            0.96
+            0.88,
+            0.97
           ]
         }
       ]
@@ -279,15 +279,15 @@
         {
           "id": "c2-lead",
           "kind": "lead",
-          "text": "Move one thing at a time: camera, object, then type.",
+          "text": "Move one thing at a time.",
           "slot": "top-left",
           "enter": [
-            0.26,
-            0.46
+            0.24,
+            0.44
           ],
           "exit": [
-            0.82,
-            0.94
+            0.86,
+            0.96
           ]
         }
       ]
