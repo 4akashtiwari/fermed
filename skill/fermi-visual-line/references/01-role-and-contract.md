@@ -110,6 +110,7 @@ APPROVAL     who signs off, and what they will look at
 Return exactly this. Short. No essays.
 
 ```
+GATES        validate ✓ · lint ✓ · check-layout ✓ (16:9, 9:16)
 DONE         specs/<slug>.json · out/<slug>.mp4 · out/<slug>-poster.png
 READS AS     one sentence: what a stranger would say the film is about
 STYLE        styleset chosen, and why in one clause

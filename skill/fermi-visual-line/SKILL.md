@@ -45,13 +45,15 @@ DELIVERY.md              a 12-line note: what it is, how to re-render, what to f
 
 Nothing else. No zips of experiments, no "v2-final-FINAL".
 
-**Definition of done** — all five must hold:
+**Definition of done** — all six must hold:
 
-1. `node cli/validate.mjs specs/<slug>.json` → exit 0
-2. `node cli/lint-style.mjs specs/<slug>.json --strict` → exit 0
-3. Stills at 3 points read cleanly: no copy collisions, no subject out of frame, no black frame
-4. MP4 exists, plays end to end, duration matches the spec
-5. `DELIVERY.md` written and the spec's `meta.brief` reflects what the film actually says
+1. `fermed validate specs/<slug>.json` → exit 0
+2. `fermed lint-style specs/<slug>.json --strict` → exit 0
+3. `fermed check-layout specs/<slug>.json --aspects 16:9,9:16` → exit 0
+   (proves no type collides, clips or overflows — at the aspects you promise)
+4. Stills at 3 points read cleanly: subject in frame, no black frame
+5. MP4 exists, plays end to end, duration matches the spec
+6. `DELIVERY.md` written and the spec's `meta.brief` reflects what the film actually says
 
 If any one fails, the job is not done — no matter how good the frames look.
 
@@ -62,8 +64,9 @@ If any one fails, the job is not done — no matter how good the frames look.
 Run these in order. Do not skip step 3, ever.
 
 ```bash
-# 0. set up (once per job)
-node cli/new.mjs "Project Name" editorial-noir     # writes specs/project-name.json
+# 0. set up (once per job, once per machine)
+fermed doctor                                     # environment preflight
+fermed new "Project Name" editorial-noir          # writes specs/project-name.json
 
 # 1. storyboard first — prose, before JSON
 #    Write the beats as a table in your scratch file (see references/03-story-grammar.md)
@@ -72,20 +75,26 @@ node cli/new.mjs "Project Name" editorial-noir     # writes specs/project-name.j
 # 2. author the spec
 #    Edit specs/<slug>.json. One scene at a time, top to bottom.
 
-# 3. prove it parses and looks right BEFORE rendering
-node cli/validate.mjs specs/<slug>.json
-node cli/lint-style.mjs specs/<slug>.json
-node cli/render.mjs specs/<slug>.json --stills 0.15,0.45,0.8 --size 1280x720
-#    → open the three PNGs. Most defects are visible here and cost 8 seconds,
-#      not 8 minutes.
+# 3. prove it BEFORE rendering — three cheap gates
+fermed validate specs/<slug>.json                 # does it parse?
+fermed lint-style specs/<slug>.json               # is the copy and camera sane?
+fermed check-layout specs/<slug>.json --aspects 16:9,9:16
+#    ↑ measures the real DOM: no overlapping type, nothing clipped
 
-# 4. only then, the film
-node cli/render.mjs specs/<slug>.json --out out/<slug>.mp4
+# 4. look at it
+fermed render specs/<slug>.json --stills 0.15,0.45,0.8 --size 1280x720
+#    open the three PNGs; most visual defects cost 8 seconds to catch here,
+#    not 8 minutes after a full render
 
-# 5. look at the film
+# 5. only then, the film
+fermed render specs/<slug>.json --out out/<slug>.mp4
+
+# 6. look at the film
 #    Extract 3 frames and check them against the stills. If they differ, you
-#    have a non-determinism bug: stop and report it, don't ship.
+#    have a determinism bug: stop and report it, don't ship.
 ```
+
+Every command above also works as `node cli/<command>.mjs`. `fermed help` lists them.
 
 Budget: a 25s film at 1080p/30fps takes 3–6 minutes on a laptop CPU. Stills take
 ~10 seconds. **You should almost never need more than two full renders.**
@@ -110,7 +119,8 @@ These are not stylistic preferences. Breaking one breaks the deliverable.
 6. **The camera never teleports under a fade.** Cut or dip, see
    `references/04-camera-direction.md`.
 7. **Determinism is sacred.** No `Math.random`, no timestamps, no "I'll fix it in
-   post". The spec must render identically twice.
+   post". The spec must render identically twice. (The engine guarantees this —
+   if it ever fails, that is a framework bug: report it, don't work around it.)
 8. **Never ship a render where the last frame is a cut to black** unless that is
    the intended ending. Check frame 0 and frame N-1.
 9. **Report honestly.** If a beat does not land, say so in `DELIVERY.md` with
@@ -144,7 +154,7 @@ Full palettes, fonts, motion feel and framing: `references/06-stylesets.md`.
 {
   "meta":     { "title": "…", "slug": "…", "brief": "…" },   // brief is required
   "styleset": "editorial-noir",                              // locked for the file
-  "render":   { "width": 1920, "height": 1080, "fps": 30 },
+  "render":   { "aspect": "16:9", "fps": 30 },               // aspect ⇒ size
   "export":   { "scrollEase": "inOutCubic" },
   "scenes": [                                               // 3–7 scenes
     {
@@ -178,6 +188,18 @@ Full palettes, fonts, motion feel and framing: `references/06-stylesets.md`.
 Everything is scene-relative: `enter: [0.2, 0.4]` means "start entering 20% into
 this scene, finish 40% in". That is why you can retime a scene by changing one
 number.
+
+**Delivering two shapes from one spec** (site hero + vertical reel): set
+`render.aspect` and give the copy a responsive slot where the layout would
+otherwise fight itself.
+
+```jsonc
+{ "kind": "metric", "text": "0.35", "suffix": "m",
+  "slot": { "16:9": "center-right", "default": "bottom-center" } }
+```
+
+`16:9` / `9:16` / `1:1` / `4:5` / `2.39:1` / `4:3` are supported; `default`
+catches everything else. Run `check-layout` on each aspect you promise.
 
 Complete field-by-field reference, with every default and every limit:
 `references/02-spec-language.md`.
@@ -226,10 +248,11 @@ wording of a headline within the brief's meaning.
 |---|---|
 | Frames are black | `render.envIntensity` too low, or every element `opacity: 0` |
 | Metal looks like a black hole | add light: raise `envIntensity`, use `material: "accent"` |
-| Two lines of type overlapping | more than 3 copy blocks in one slot — move one to another slot |
+| Two lines of type overlapping | `check-layout` names both ids and the fix; usually a responsive slot |
 | Text unreadable over geometry | subject is behind the copy: move copy slot, or push the subject +Z |
 | Scene feels like a slide | no camera move, or move too small: <1.5 units reads as static |
 | Motion sickness | camera travel > 6 units in under 4s, or fov change > 25 under a fade |
 | Export looks different from the site | you edited the engine. Revert. |
+| Vertical render looks cramped | one copy slot per scene; pull the camera back ~25%; `aspect: "9:16"` |
 
 More, with causes: `references/09-troubleshooting.md`.

@@ -13,6 +13,8 @@ Symptom → cause → fix. Ordered by how often it happens.
 | `unknown ease "power2.easeInOut"` | GSAP naming | `power2.inOut` |
 | `spec not found` | wrong path or the dev server is serving another root | check `specs/<slug>.json` exists |
 | `waitForFunction: Timeout` and a page error about `.color` | an engine bug, not yours | report it; do not edit the engine |
+| `engine failed to start …` with a field path | the spec is invalid at runtime | run `fermed validate` on that file |
+| `check-layout` cannot build | vite build failed | `npm run build` and read the error |
 | Playwright: `libnspr4.so: cannot open shared object file` | Chromium's system deps are missing (Linux) | `sudo apt-get install -y libnspr4 libnss3 libgbm1 libasound2t64` etc. — see README §Troubleshooting |
 | `ffmpeg exited 1` | usually an odd frame size (must be even) | use an even `--size`, or let it default |
 
@@ -64,6 +66,8 @@ Symptom → cause → fix. Ordered by how often it happens.
 | copy is selectable/accessible in the DOM but not in the film | correct and intended | nothing |
 | the site is janky, the film is smooth | live GPU cost; the film is off-line | reduce elements/materials; confirm with `--stills` perf |
 | reduced-motion users see a static page | correct and intended (pins disabled, copy remains) | nothing |
+| the film is fine but the vertical cut is unreadable | two side-by-side slots in a narrow frame | give one a responsive slot, or one slot per scene |
+| a line is clipped at the right edge in 9:16 | fixed slot designed for landscape | `"slot": {"16:9": "center-right", "default": "bottom-center"}` |
 | scrollbar length feels wrong | `pxPerSecond × total seconds` | that number is the page height; tune `pxPerSecond` |
 
 ## Linter errors and what they really mean
@@ -79,6 +83,15 @@ Symptom → cause → fix. Ordered by how often it happens.
 | `element "x" hard-codes colour` | style drift | use a palette role or `accent` |
 | `exits before it finishes entering` | `exit[0] < enter[1]` | move the exit later |
 | `meta.brief is empty` | no record of intent | paste the Director's brief |
+
+## Layout checker output
+
+| Message | Means | Fix |
+|---|---|---|
+| `copy "a" and "b" overlap by N%` | two blocks occupy the same pixels (N>18% = error) | responsive slot, or shorten one |
+| `copy "x" overflows the safe area by Npx` | it leaves the padded frame or goes under the letterbox | shorten, drop a size (display→lead), or move to a centre slot |
+| `copy "x" is Npx tall inside an Mpx slot` | the column outgrew its band | fewer blocks in that slot, or a caption instead of a lead |
+| `no collisions, no clipping` | the frame is provably clean at that aspect | ship it |
 
 ## When you are stuck
 

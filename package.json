@@ -1,22 +1,40 @@
 {
   "name": "fermed",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Fermed \u2014 a scroll-story renderer. Spec-driven 3D sites that scroll like film and export to MP4.",
+  "description": "Fermed — a spec-driven 3D scroll-story renderer. One JSON spec in; a scroll-driven website and an MP4 of the same film out.",
+  "keywords": [
+    "3d",
+    "scroll",
+    "three.js",
+    "gsap",
+    "renderer",
+    "video",
+    "storytelling",
+    "agent-skill"
+  ],
+  "license": "MIT",
   "bin": {
     "fermed": "cli/fermed.mjs"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0 --port 4321",
+    "doctor": "node cli/doctor.mjs",
     "render": "node cli/render.mjs",
     "new": "node cli/new.mjs",
     "validate": "node cli/validate.mjs",
     "inspect": "node cli/inspect.mjs",
     "lint:style": "node cli/lint-style.mjs",
-    "check": "npm run validate -- specs/demo.json && npm run lint:style -- specs/demo.json"
+    "check:layout": "node cli/check-layout.mjs",
+    "check": "npm run validate -- specs/demo.json && npm run lint:style -- specs/demo.json",
+    "test": "node --test tests/",
+    "pretest": "npm run build"
   },
   "dependencies": {
     "gsap": "^3.13.0",

@@ -629,7 +629,10 @@
           "kind": "metric",
           "text": "12",
           "suffix": "×",
-          "slot": "center-right",
+          "slot": {
+            "16:9": "center-right",
+            "default": "bottom-center"
+          },
           "enter": [
             0.16,
             0.4
@@ -643,7 +646,10 @@
           "id": "s3-head",
           "kind": "display",
           "text": "One column explains the day.",
-          "slot": "center-left",
+          "slot": {
+            "16:9": "center-left",
+            "default": "top-center"
+          },
           "enter": [
             0.18,
             0.42
@@ -657,7 +663,10 @@
           "id": "s3-lead",
           "kind": "lead",
           "text": "Everything else is noise.",
-          "slot": "center-left",
+          "slot": {
+            "16:9": "center-left",
+            "default": "top-center"
+          },
           "enter": [
             0.36,
             0.54

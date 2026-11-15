@@ -159,7 +159,11 @@ export function resolveTheme(spec = {}) {
   const override = spec.theme || {};
 
   const theme = {
-    name: name || 'editorial-noir',
+    // Report the styleset actually applied, not the one that was asked for —
+    // otherwise a typo silently renders the default under a wrong label.
+    name: STYLESETS[name] ? name : 'editorial-noir',
+    requested: name || 'editorial-noir',
+    fellBack: !!name && !STYLESETS[name],
     label: base.label,
     description: base.description,
     palette: { ...base.palette, ...(inline.palette || {}), ...(override.palette || {}) },

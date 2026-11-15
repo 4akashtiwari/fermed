@@ -10,13 +10,18 @@ that goes with them.
 Run from the repo root.
 
 ```bash
-node cli/validate.mjs specs/<slug>.json          # schema + storyboard, exit 0/1
-node cli/lint-style.mjs specs/<slug>.json        # taste guardrails (add --strict to gate CI)
-node cli/inspect.mjs specs/<slug>.json           # camera/fov/veil/visibility at 10 points
-node cli/render.mjs specs/<slug>.json --stills 0.15,0.45,0.8 --size 1280x720
-node cli/render.mjs specs/<slug>.json --out out/<slug>.mp4
+fermed doctor                                     # environment preflight (once per machine)
+fermed validate specs/<slug>.json                 # schema + storyboard, exit 0/1
+fermed lint-style specs/<slug>.json               # taste guardrails (--strict to gate CI)
+fermed check-layout specs/<slug>.json --aspects 16:9,9:16   # measured DOM layout proof
+fermed inspect specs/<slug>.json                  # camera/fov/veil/visibility at 10 points
+fermed render specs/<slug>.json --stills 0.15,0.45,0.8 --size 1280x720
+fermed render specs/<slug>.json --out out/<slug>.mp4
 npm run dev                                       # live site at http://localhost:5173/?spec=/specs/<slug>.json
 ```
+
+`fermed <command>` and `node cli/<command>.mjs` are the same thing; use whichever
+your environment has. `fermed help` lists every command.
 
 ### `render` flags
 
@@ -26,7 +31,8 @@ npm run dev                                       # live site at http://localhos
 | `--size 1920x1080` | overrides `render.width/height` |
 | `--fps 30` | overrides `render.fps` |
 | `--stills a,b,c` | write PNG stills at those story progress points, no video |
-| `--poster` | also write a poster PNG (midpoint) |
+| `--poster` | also write a poster PNG (68% through the film) |
+| `--poster-at 0.8` | move the poster frame |
 | `--from 0.2 --to 0.6` | render a section only — for testing a scene |
 | `--crf 18` | quality; 16 master, 18 deliverable, 22 draft |
 | `--preset medium` | faster encode, slightly larger file |
@@ -97,6 +103,25 @@ means you go back to step 3, not into the encode.
 8. No frame is fully black except an intentional dip
 9. Motion does not stop dead mid-scene
 10. The film still says the takeaway if you mute it
+
+## 4b. Delivering two frame shapes
+
+If the brief wants a site hero **and** a vertical cut, do not write two specs.
+Set the responsive slots once and render twice:
+
+```bash
+node cli/check-layout.mjs specs/<slug>.json --aspects 16:9,9:16   # prove both
+node cli/render.mjs specs/<slug>.json --aspect 16:9 --out out/<slug>-wide.mp4
+node cli/render.mjs specs/<slug>.json --aspect 9:16 --out out/<slug>-vertical.mp4
+```
+
+(`--aspect` overrides `render.aspect` at render time.) Notes for vertical:
+
+- one copy slot per scene, usually `top-center` or `bottom-center`
+- pull the camera back ~25% in `z` — a vertical frame crops the sides, not the
+  middle
+- shorten leads to ~12 words; portrait lines wrap sooner
+- keep the letterbox at ≤4% or you lose a third of the frame
 
 ## 5. DELIVERY.md
 

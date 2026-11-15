@@ -45,10 +45,34 @@ Everything else follows from that:
                     └── drive  mode: window.__fermed.seek(t) ← cli/render.mjs
 ```
 
-### `timeline.js` — the single source of truth
+### `tracks.js` — the single source of truth
 
-Builds a paused GSAP timeline at mount time, then never plays it. Instead
-`sample(t)` seeks it and returns a **plain-JSON snapshot**:
+The timeline is a set of **channels**, each one a list of keyframes evaluated as
+a pure function of time. `sample(t)` computes every value from scratch — there is
+no playhead, no cached start value, no ordering. That is what makes scrubbing,
+frame-by-frame rendering and repeated renders identical by construction.
+
+```js
+const c = new Channel('camera.position.0').from(0)
+  .tween(0, 0.55, 0, 5, 'power2.inOut')     // from, to, start, duration, ease
+  .tween(0.55, 0.2, 5, 5.5, 'sine.inOut');
+c.at(7.2); // always the same number
+```
+
+Ease **names** stay in the GSAP vocabulary (`power2.inOut`, `expo.out`, …) and
+are implemented in `tracks.js`, so specs did not change when the engine did.
+
+> **Why not GSAP for the timeline?** It was, until v0.2, and it was wrong for
+> this job. GSAP inits a tween when the playhead first reaches it and caches the
+> start value at that moment; crossing back into an initialised tween can
+> re-apply its `from` and overwrite the previous segment's end. Forward-only
+> playback never sees it. A renderer that seeks by definition does. Two
+> consecutive renders of the same frame could disagree. That is unacceptable in a
+> product whose pitch is determinism, so the timeline became math. GSAP still
+> powers the live site (ScrollTrigger, ticker); it no longer owns any value that
+> reaches a frame.
+
+`sample(t)` returns a **plain-JSON snapshot**:
 
 ```js
 { t, tSec, t01, bg, veil, camera:{position,lookAt,fov},
@@ -57,14 +81,15 @@ Builds a paused GSAP timeline at mount time, then never plays it. Instead
   sceneIndex, sceneProgress }
 ```
 
-Two implementation rules that are load-bearing:
+Implementation rules that are load-bearing:
 
-1. **Arrays are created once and mutated in place.** GSAP holds a reference to
-   the object it tweens. Reassigning `state.camera.position = [...]` after a
-   tween was created silently detaches it.
-2. **`tl.render(t, true, true)` with `force = true`.** A seek to a time already
-   visited would otherwise be skipped by GSAP's "same position" check, and the
-   renderer would draw stale state.
+1. **Every animated number is a channel.** No animation library owns a value that
+   reaches a frame. If you add motion, add a channel.
+2. **Snapshots are deep-copied.** Consumers must not be able to reach into engine
+   state, and snapshots must be JSON-serialisable (tests assert both).
+3. **One definition of layout.** `frame.js` decides where type may live; the
+   overlay obeys it and `framecheck.js` verifies the result. Nothing else
+   computes a slot position by hand.
 
 ### `stage.js` — the 3D side
 
@@ -77,6 +102,21 @@ The environment is generated procedurally from the theme palette (a box of
 emissive panels, run through `PMREMGenerator`). Without it, `metalness > 0`
 renders black — there is nothing to reflect. This was the first bug the demo
 exposed.
+
+### `frame.js` + `framecheck.js` — layout is a proof, not a judgement
+
+`frame.js` is the only place that decides where type may live: safe area (frame
+minus padding minus letterbox), slot boxes, and responsive slot resolution
+(`{"16:9": "center-left", "default": "top-center"}`). Narrow frames get a
+different art direction (full-width slots separated by band) because that is how
+vertical video actually works.
+
+`framecheck.js` is pure geometry: pairwise collision, safe-area containment and
+slot overflow, each with a severity and a suggested fix. `overlay.audit()` feeds
+it real measured boxes (with entrance transforms neutralised), and
+`cli/check-layout.mjs` walks a story at N points across M aspects in a real
+browser. CI asserts that a deliberately broken fixture fails and its fixed twin
+passes — so the guard itself is tested.
 
 ### `overlay.js` — the type side
 
@@ -152,7 +192,8 @@ closed on purpose — reproducibility over expressiveness).
 | add a material | `MATERIALS` in `engine/geometry.js` | one function |
 | add an ease | `engine/easings.js` (it is also the validator list) | one string |
 | add an idle motion | `applyIdle` in `engine/timeline.js` + schema | must be a function of `tSec` |
-| add a copy slot | `SLOTS` in `engine/overlay.js` + schema enum | trivial |
+| add a copy slot | `frame.js` slot tables + schema enum | trivial, then run `check-layout` |
+| add an aspect | `engine/aspects.js` | one entry; check narrow-frame behaviour |
 | support vertical video | set `render` to 1080×1920; copy slots already adapt | test the letterbox |
 | add audio to the site | `player.js`: a muted `<audio>` unlocked on first scroll | small |
 
@@ -174,3 +215,9 @@ vocabulary, and the closed vocabulary is the product.
   two scenes simultaneously with different poses — the last scene wins.
 - **`glass` transmission is expensive** with many instances; keep it to 1–2
   elements.
+- **Type metrics differ per platform.** The layout checker runs in the same
+  Chromium that renders the film, so the check matches the export; a different
+  browser on the client's machine may wrap differently.
+- **Ease implementations are ours.** They match the GSAP names closely but are
+  not bit-identical to GSAP's curves. Specs are unaffected; a frame-by-frame diff
+  against an older GSAP render would show sub-pixel differences.

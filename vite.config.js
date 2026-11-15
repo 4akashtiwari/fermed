@@ -14,11 +14,16 @@ function fermedSpecs() {
     name: 'fermed-specs',
     apply: 'build',
     closeBundle() {
-      const src = path.resolve(__dirname, 'specs');
-      const dest = path.resolve(__dirname, 'dist/specs');
-      fs.mkdirSync(dest, { recursive: true });
-      for (const file of fs.readdirSync(src)) {
-        if (file.endsWith('.json')) fs.copyFileSync(path.join(src, file), path.join(dest, file));
+      // Mirror every directory that can hold a spec so `?spec=/tests/fixtures/x.json`
+      // and `?spec=/specs/x.json` both resolve in the build.
+      for (const dir of ['specs', 'tests/fixtures']) {
+        const src = path.resolve(__dirname, dir);
+        if (!fs.existsSync(src)) continue;
+        const dest = path.resolve(__dirname, 'dist', dir);
+        fs.mkdirSync(dest, { recursive: true });
+        for (const file of fs.readdirSync(src)) {
+          if (file.endsWith('.json')) fs.copyFileSync(path.join(src, file), path.join(dest, file));
+        }
       }
     },
   };

@@ -6,7 +6,7 @@
     "client": "Fermed",
     "author": "Visual Line / Fermi",
     "slug": "story-zero",
-    "brief": "Reference spec. Every scene demonstrates one story beat: establish, orbit, descend, reveal, resolve. Workers should copy this file and replace content, never structure."
+    "brief": "Reference spec. Every scene demonstrates one story beat: establish, orbit, descend, reveal, resolve. Scene 3 shows responsive copy slots so the same spec reads correctly as a 16:9 site hero and a 9:16 reel. Workers should copy this file and replace content, never structure."
   },
   "styleset": "editorial-noir",
   "render": {
@@ -966,7 +966,10 @@
           "kind": "metric",
           "text": "0.35",
           "suffix": "m",
-          "slot": "center-right",
+          "slot": {
+            "16:9": "center-right",
+            "default": "bottom-center"
+          },
           "enter": [
             0.16,
             0.4
@@ -980,7 +983,10 @@
           "id": "s3-head",
           "kind": "display",
           "text": "Cross the surface.",
-          "slot": "center-left",
+          "slot": {
+            "16:9": "center-left",
+            "default": "top-center"
+          },
           "enter": [
             0.2,
             0.45
@@ -994,7 +1000,10 @@
           "id": "s3-lead",
           "kind": "lead",
           "text": "A dolly-in reads as speed.",
-          "slot": "center-left",
+          "slot": {
+            "16:9": "center-left",
+            "default": "top-center"
+          },
           "enter": [
             0.3,
             0.5

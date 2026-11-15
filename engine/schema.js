@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { SHAPE_NAMES, MATERIAL_NAMES } from './geometry.js';
 import { STYLESET_NAMES } from './stylesets.js';
 import { EASE_SET } from './easings.js';
+import { ASPECT_NAMES, aspectSize } from './aspects.js';
 
 const vec3 = z.array(z.number()).length(3);
 const frac = z.number().min(0).max(1);
@@ -72,6 +73,19 @@ const elementSchema = z.object({
   renderOrder: z.number().optional(),
 }).strict();
 
+/** Slots: a fixed name, or a map of aspect → slot for responsive layout. */
+const slotMap = z.record(z.enum([
+  'top-left', 'top-center', 'top-right',
+  'center-left', 'center', 'center-right',
+  'bottom-left', 'bottom-center', 'bottom-right',
+])).refine((m) => Object.keys(m).length > 0, { message: 'slot map must have at least one aspect' });
+
+const SLOT_NAMES = [
+  'top-left', 'top-center', 'top-right',
+  'center-left', 'center', 'center-right',
+  'bottom-left', 'bottom-center', 'bottom-right',
+];
+
 const copySchema = z.object({
   id: z.string().optional(),
   kind: z.enum(['display', 'lead', 'metric', 'eyebrow']).default('display'),
@@ -80,17 +94,15 @@ const copySchema = z.object({
   suffix: z.string().max(12).optional(),
   caption: z.string().max(200).optional(),
   rule: z.boolean().optional(),
-  slot: z.enum([
-    'top-left', 'top-center', 'top-right',
-    'center-left', 'center', 'center-right',
-    'bottom-left', 'bottom-center', 'bottom-right',
-  ]).default('center-left'),
+  // "center-left"                       fixed at every frame shape
+  // { "16:9": "center-left", "9:16": "top-center" }   responsive
+  slot: z.union([z.enum(SLOT_NAMES), slotMap]).default('center-left'),
   enter: window2.optional(),
   exit: window2.optional(),
   stagger: z.number().min(0).max(0.5).optional(),
   ease: easeStr.optional(),
   hold: z.boolean().optional(),
-}).strict();
+}).strict().strict();
 
 const cameraSchema = z.object({
   from: z.object({ position: vec3.optional(), lookAt: vec3.optional(), fov: z.number().min(10).max(110).optional() }).strict().optional(),
@@ -111,7 +123,7 @@ const sceneSchema = z.object({
   camera: cameraSchema.optional(),
   elements: z.array(elementSchema).max(24).default([]),
   copy: z.array(copySchema).max(6).default([]),
-});
+}).strict();
 
 export const specSchema = z.object({
   $schema: z.string().optional(),
@@ -154,6 +166,7 @@ export const specSchema = z.object({
   }).strict().optional(),
 
   render: z.object({
+    aspect: z.enum(ASPECT_NAMES).optional(),
     width: z.number().int().min(320).max(3840).optional(),
     height: z.number().int().min(240).max(2160).optional(),
     fps: z.number().int().min(12).max(60).optional(),
@@ -208,7 +221,16 @@ export function validateSpec(raw) {
 /** Fill the render/scroll defaults so workers can omit them. */
 export function applyDefaults(spec) {
   const s = structuredClone(spec);
-  s.render = { width: 1920, height: 1080, fps: 30, pixelRatioCap: 2, exposure: 1, fog: 0.035, ambient: 0.35, envIntensity: 1.15, ...(s.render || {}) };
+  // `render.aspect` is a convenience: it fills width/height unless the spec is
+  // explicit. Explicit size always wins so a spec can never be silently resized.
+  if (s.render?.aspect) {
+    const size = aspectSize(s.render.aspect);
+    if (size) {
+      if (s.render.width == null) s.render.width = size.width;
+      if (s.render.height == null) s.render.height = size.height;
+    }
+  }
+  s.render = { aspect: '16:9', width: 1920, height: 1080, fps: 30, pixelRatioCap: 2, exposure: 1, fog: 0.035, ambient: 0.35, envIntensity: 1.15, ...(s.render || {}) };
   s.scroll = { pxPerSecond: 180, lerpDuration: 1.1, smooth: true, wheelMultiplier: 1, touchMultiplier: 1.6, ...(s.scroll || {}) };
   s.export = { scrollEase: 'inOutCubic', introHold: 0.25, outroHold: 0.6, format: 'mp4', crf: 18, preset: 'slow', ...(s.export || {}) };
   s.meta.slug = s.meta.slug || s.meta.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');

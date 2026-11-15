@@ -39,7 +39,8 @@ name says seconds. **Angles are radians** in `transform`, degrees in `fov`.
 ### `render`
 | Field | Default | Range | Notes |
 |---|---|---|---|
-| `width` | 1920 | 320–3840 | film width |
+| `aspect` | `16:9` | `16:9` `9:16` `1:1` `4:5` `2.39:1` `4:3` | sets width/height unless you set them explicitly |
+| `width` | 1920 | 320–3840 | film width (explicit size always wins) |
 | `height` | 1080 | 240–2160 | 16:9 unless the brief says otherwise |
 | `fps` | 30 | 12–60 | 24 = cinema, 30 = web |
 | `pixelRatioCap` | 2 | 1–3 | leave at 2 |
@@ -161,7 +162,7 @@ hero object survives a camera move — you never re-create it.
 | `eyebrow` | string | ≤64 | small caption *above* this block |
 | `caption` | string | ≤200 | small note *below* this block |
 | `rule` | boolean | — | hairline above |
-| `slot` | enum | 9 slots | `center-left` |
+| `slot` | enum **or** map | 9 slots, or `{ "16:9": …, "default": … }` | `center-left` |
 | `enter` / `exit` | `[a,b]` | must not overlap | `[0.1,0.26]` / `[0.84,0.96]` |
 | `stagger` | 0–0.5 | per-word delay | 0.035 |
 | `ease` | ease | — | `expo.out` |
@@ -169,6 +170,28 @@ hero object survives a camera move — you never re-create it.
 
 Slots: `top-left`, `top-center`, `top-right`, `center-left`, `center`,
 `center-right`, `bottom-left`, `bottom-center`, `bottom-right`.
+
+**Responsive slots.** A map keyed by aspect makes one spec serve a site hero and
+a vertical reel:
+
+```jsonc
+"slot": { "16:9": "center-right", "9:16": "bottom-center", "default": "bottom-center" }
+```
+
+Resolution: the key whose ratio is closest to the frame wins, but only within
+~13%; otherwise `default` applies. So a 16:9-only map does not silently leak into
+a phone. Verify with:
+
+```bash
+node cli/check-layout.mjs specs/<slug>.json --aspects 16:9,9:16
+```
+
+**How a slot behaves.** A slot is a box inside the safe area (frame minus padding
+and letterbox). In a landscape frame the box takes ~62% of the safe width and is
+pushed to its own side, leaving room for the subject. In a narrow frame
+(aspect < 1.05) every slot takes the full safe width, and slots are separated by
+band (top / centre / bottom) instead — that is how vertical video is actually
+art-directed. Type wraps inside the box; nothing may leave the safe area.
 
 **Slot rule:** items in the same slot stack as a column, in array order. More
 than 3 in one slot is a lint error. A scene with copy in `center-left` and

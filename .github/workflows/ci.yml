@@ -6,8 +6,9 @@ on:
   pull_request:
 
 jobs:
-  specs:
-    name: validate specs
+  # Fast, no browser: schema, style and unit tests.
+  unit:
+    name: specs + unit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,9 +17,11 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: unit tests
+        run: node --test tests/
       - name: schema + storyboard
         run: |
-          for f in specs/*.json; do
+          for f in specs/*.json tests/fixtures/*fixed*.json; do
             [ "$(basename "$f")" = "_template.json" ] && continue
             node cli/validate.mjs "$f"
           done
@@ -28,5 +31,39 @@ jobs:
             [ "$(basename "$f")" = "_template.json" ] && continue
             node cli/lint-style.mjs "$f" --strict
           done
+
+  # Slow, needs Chromium: proves the layout checker catches real defects and
+  # that a spec still renders a frame.
+  render:
+    name: layout + render smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: doctor
+        run: node cli/doctor.mjs
       - name: build
         run: npm run build
+      - name: layout is clean at every aspect (shipped specs)
+        run: |
+          node cli/check-layout.mjs specs/demo.json --aspects 16:9,9:16,1:1 --points 10
+          node cli/check-layout.mjs specs/example-night-signal.json --aspects 16:9,9:16 --points 10
+      - name: the checker must reject the broken fixture
+        run: |
+          if node cli/check-layout.mjs tests/fixtures/collide-vertical.json --aspects 9:16 --points 5; then
+            echo "::error::check-layout passed a spec with overlapping copy — the guard is broken"
+            exit 1
+          fi
+      - name: the fixed fixture must pass
+        run: node cli/check-layout.mjs tests/fixtures/collide-vertical-fixed.json --aspects 16:9,9:16 --points 5
+      - name: render a clip (renderer starts its own server)
+        run: node cli/render.mjs specs/demo.json --from 0 --to 0.04 --size 640x360 --fps 10 --preset ultrafast --crf 28 --out out/ci-smoke.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ci-smoke
+          path: out/ci-smoke.mp4

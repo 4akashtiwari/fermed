@@ -59,7 +59,7 @@ not the ability to model a torus knot.
         │
         ▼
    ┌──────────────┐
-   │  timeline.js │  builds one GSAP timeline from the spec
+   │  tracks.js   │  each animated number is a keyframed channel
    └──────┬───────┘  the whole film is a pure function of story time t (0..1)
           │
     ┌─────┴──────┐
@@ -79,8 +79,9 @@ Four consequences you should internalise:
 
 1. **The film and the site are the same film.** Both read the same timeline.
    That is why you can preview at 720p and trust the 1080p export.
-2. **Everything is deterministic.** Time is the only input. No random numbers, no
-   "it depends on the machine". Render twice, get the same film.
+2. **Everything is deterministic.** Time is the only input: every value is
+   evaluated from keyframes on each seek, never carried forward from the last
+   frame. Scrub backwards, render twice, sample in any order — same pixels.
 3. **The vocabulary is closed.** Shapes, materials, easings and stylesets are
    fixed lists. You cannot draw arbitrary things — which is what keeps output
    consistent across workers.
@@ -116,7 +117,7 @@ DELIVERY.md             12 lines: what it is, what's risky, how to re-render
 | read brief, fill gaps | 5 min | confirmed brief |
 | storyboard as a table | 10 min | 5–7 rows of prose |
 | author the spec | 25–40 min | `specs/<slug>.json` |
-| validate + lint + 3 stills | 5 min | fixes |
+| validate + lint + layout + 3 stills | 6 min | fixes |
 | draft 720p | 4 min | `-draft.mp4` |
 | master 1080p | 6 min | `out/<slug>.mp4` |
 | DELIVERY.md | 5 min | handed over |
@@ -239,12 +240,15 @@ fades; only the camera changes.
 ```bash
 node cli/validate.mjs specs/acme-hero.json        # ✓ parses, storyboard prints
 node cli/lint-style.mjs specs/acme-hero.json      # ✓ no style drift, copy fits
+node cli/check-layout.mjs specs/acme-hero.json --aspects 16:9,9:16
 node cli/render.mjs specs/acme-hero.json --stills 0.15,0.45,0.8 --size 1280x720
 ```
 
-Open the three PNGs. This is where you catch, in eight seconds: two headlines in
-the same slot, a subject hidden behind type, a black frame, a camera that drifted
-out of range, metal that reads as a black hole.
+The layout check is the important addition: it measures where the type actually
+landed and tells you if two blocks collide or anything clips — the two defects
+you used to find by squinting at a PNG. Then open the three stills for the things
+the checker cannot see: a subject hidden behind type, a black frame, a camera
+that drifted out of range, metal that reads as a black hole.
 
 Then a 720p draft to check *motion*, which stills cannot show. Only then the
 master.
@@ -297,6 +301,14 @@ why the camera's `z` goes 3.2 → 0.35.
 
 ### Day 2 — break the demo on purpose
 
+First, run the gates so you know what a clean pass looks like:
+
+```bash
+node --test tests/
+node cli/check-layout.mjs specs/demo.json --aspects 16:9,9:16
+```
+
+
 Open `specs/demo.json`, and change things one at a time:
 
 - set scene 2's `duration` to 2 → watch the copy become unreadable (the linter
@@ -304,6 +316,8 @@ Open `specs/demo.json`, and change things one at a time:
 - change scene 3's `transition` to `cut` → run the linter, read the error, undo
 - remove `hold: true` from `core-wire` → watch the object vanish mid-film
 - raise `render.envIntensity` to 2 → watch the metal become plastic
+- set a copy slot to `{"16:9": "center-right"}` in scene 3 → `check-layout` at
+  9:16 reports the collision and suggests the fix
 
 Each break should teach you one rule. This is faster than reading the references.
 
@@ -331,6 +345,9 @@ costs · the alternative).
 | Term | Means |
 |---|---|
 | **spec** | the JSON file you author; the single source of truth |
+| **channel / track** | one keyframed number in the engine; evaluated purely from `t` |
+| **safe area** | the frame minus padding minus letterbox: where type may live |
+| **responsive slot** | a slot that changes per aspect: `{ "16:9": …, "default": … }` |
 | **scene / beat** | one continuous camera move with its cast and copy |
 | **story time `t`** | progress through the whole film, 0..1 |
 | **scene-relative fraction** | where in a scene something happens, 0..1 |
@@ -352,8 +369,8 @@ costs · the alternative).
 
 A film is **not done** because it rendered. It is done when all five hold:
 
-1. `validate` exit 0, `lint --strict` exit 0
-2. three stills read cleanly (no collisions, subject visible, no black)
+1. `validate` exit 0, `lint --strict` exit 0, `check-layout` exit 0
+2. three stills read cleanly (subject visible, no black frame)
 3. the draft holds attention start to finish at 720p
 4. the takeaway is sayable after one watch, muted
 5. `DELIVERY.md` exists with a specific `Risk`
@@ -396,5 +413,5 @@ waiting to be blamed on you.
 
 ---
 
-*Fermed 0.1.0 · Visual line skill · keep this file and `SKILL.md` in sync when the
+*Fermed 0.2.0 · Visual line skill · keep this file and `SKILL.md` in sync when the
 framework changes.*

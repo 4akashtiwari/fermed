@@ -37,27 +37,31 @@ Read [`ARCHITECTURE.md`](ARCHITECTURE.md) first. Then hold these invariants:
 
 ### Non-negotiable
 
-1. **Determinism.** No `Math.random`, no `Date.now`, no wall-clock reads inside
-   `timeline.sample`, `stage.render`, `overlay.update`. Any new idle motion must
-   be a closed-form function of `tSec`.
+1. **Determinism.** Every animated number is a keyframed channel in
+   `engine/tracks.js`, evaluated as a pure function of `t`. No `Math.random`, no
+   `Date.now`, no wall-clock reads inside `sample`, `render` or `update`, and no
+   animation library may own a value that reaches a frame. Any new idle motion is
+   a closed-form function of `tSec`. `npm test` proves order-independence.
 2. **Parity.** The scroll path and the render path must call the same
    `seek(t) → sample(t) → render/update` chain. If you add a visual effect, it
    goes through that chain or it does not go in.
 3. **The schema is a contract.** Adding a field means adding it to
    `engine/schema.js` with a default and documenting it in
    `skill/fermi-visual-line/references/02-spec-language.md` in the same commit.
-4. **GSAP array tweening.** Do not reassign an array that a tween targets.
-   Mutate in place, and use `fromTo` with `immediateRender: false` so building a
-   timeline has no side effects and start values cannot be captured stale.
-5. **`sample()` must force a render.** `tl.render(t, true, true)` — without
-   `force`, seeking to an already-visited time leaves stale state.
+4. **Layout has one owner.** Where type may live is decided in `engine/frame.js`
+   and verified by `engine/framecheck.js`. Do not compute slot geometry anywhere
+   else; run `check-layout` after touching either.
+5. **Snapshots are plain data.** `sample(t)` returns deep-copied JSON. Never hand
+   out engine state.
 
 ### Before you push
 
 ```bash
-npm run check                                  # validate + lint on the demo spec
+npm test                                                          # unit tests, no browser
+npm run check                                                     # validate + lint on the demo
+npm run check:layout -- specs/demo.json --aspects 16:9,9:16       # measured layout
 node cli/render.mjs specs/demo.json --stills 0.15,0.45,0.8 --size 1280x720
-node cli/render.mjs specs/demo.json --url http://localhost:5173 --from 0 --to 0.15 --out out/_gate.mp4
+node cli/render.mjs specs/demo.json --from 0 --to 0.1 --size 640x360 --out out/_gate.mp4
 ```
 
 Look at the stills. Look at the clip. If a change alters the demo's look, say so
@@ -72,7 +76,8 @@ in the commit message — the demo is the visual regression test.
 | material | `MATERIALS` in `engine/geometry.js` | document the theme mapping |
 | ease | `engine/easings.js` | it is also the validator's allow-list |
 | idle motion | `applyIdle` + schema `motionSchema` | must be `tSec`-pure; soft cap 3 motions per element |
-| copy slot | `SLOTS` in `engine/overlay.js` + schema enum | check at 16:9 **and** 9:16 |
+| copy slot | `engine/frame.js` + schema enum | `check-layout` at 16:9 **and** 9:16 |
+| aspect ratio | `engine/aspects.js` | even dimensions (h264); verify narrow-frame slot behaviour |
 | CLI flag | `cli/render.mjs` | document in `references/08` and README |
 
 ### Adding to the skill

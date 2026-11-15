@@ -12,9 +12,8 @@
  *   { camera, elements[], copy[], veil, sceneIndex, sceneProgress, tSec }
  */
 
-import gsap from 'gsap';
-
 import { clamp, lerp, mapRange, hash01 } from './util.js';
+import { Channel, easeFn } from './tracks.js';
 import { resolveEase } from './easings.js';
 import { resolveTheme } from './stylesets.js';
 
@@ -31,8 +30,17 @@ const DEFAULTS = {
   elementOpacity: { from: 0, to: 1, enter: [0, 0.18], exit: [0.86, 1] },
 };
 
-const vecTween = (arr, to) => ({ 0: to[0], 1: to[1], 2: to[2] });
-
+/*
+ * Vectors are tweenable objects, not arrays.
+ *
+ * GSAP treats an array argument as a LIST OF TARGETS, so `to([0,0,0], {0: 1})`
+ * animates three number targets and creates zero property tweens — the tween
+ * "runs" but writes nothing, which is invisible until you scrub backwards and
+ * discover the values were never being driven at all. An array-like object
+ * ({0,1,2}) is a single target with numeric properties, which is what we want.
+ * `Array.from()` still turns it into a plain vector for sampling.
+ */
+const vec = (x = 0, y = 0, z = 0) => ({ 0: x, 1: y, 2: z });
 const v3 = (a, fallback) => (Array.isArray(a) && a.length === 3 ? a.map(Number) : fallback);
 
 /** Normalise a camera block, filling from the previous scene for continuity. */
@@ -78,25 +86,19 @@ export function buildTimeline(spec) {
   const scenes = spec.scenes || [];
   const total = scenes.reduce((n, s) => n + (Number(s.duration) || 4), 0) || 1;
 
-  // ---- running state: the single object the timeline writes into ----------
-  // Arrays are created ONCE and mutated in place: GSAP keeps a reference to
-  // whatever object it tweens, so replacing an array mid-build silently
-  // detaches later tweens. This is the one rule this file must never break.
-  const state = {
-    camera: {
-      position: [0, 0, 0],
-      lookAt: [0, 0, 0],
-      fov: DEFAULTS.camera.fov,
-    },
-    veil: 0,             // 0 = clear, 1 = fully covered by veil colour
-    bg: theme.palette.bg,
-    elements: {},        // id -> { position, rotation, scale, opacity }
-    copies: {},          // id -> { opacity, y, words[] }
+  // Every animated number lives in a Channel. Sampling is pure evaluation —
+  // there is no playhead, so seeking backwards costs nothing and cannot drift.
+  const channels = new Map();
+  const chan = (key, initial = 0) => {
+    let c = channels.get(key);
+    if (!c) {
+      c = new Channel(key).from(initial);
+      channels.set(key, c);
+    }
+    return c;
   };
 
-  const tl = gsap.timeline({ paused: true, defaults: { ease: 'none' } });
   const sceneMeta = [];
-
   let cursor = 0;
   let prevCam = {
     position: [...DEFAULTS.camera.position],
@@ -104,118 +106,82 @@ export function buildTimeline(spec) {
     fov: DEFAULTS.camera.fov,
   };
 
-  // fromTo (not set+to) so the start value is explicit and cannot be captured
-  // stale at build time. immediateRender:false keeps the build side-effect free.
-  const fromToVec = (arr, from, to, at, duration, ease) => tl.fromTo(
-    arr,
-    { ...vecTween(arr, from) },
-    { ...vecTween(arr, to), duration, ease, immediateRender: false },
-    at,
-  );
-
   scenes.forEach((scene, si) => {
     const dur = Number(scene.duration) || 4;
     const start = cursor;
     const S = (f) => start + Math.min(1, Math.max(0, f)) * dur;
     const cam = normaliseCamera(scene.camera, prevCam);
 
-    // ---- camera: pin the start, then travel ------------------------------
-    fromToVec(state.camera.position, cam.from.position, cam.to.position, start, dur, cam.ease);
-    fromToVec(state.camera.lookAt, cam.from.lookAt, cam.to.lookAt, start, dur, cam.ease);
-    tl.fromTo(state.camera, { fov: cam.from.fov }, { fov: cam.to.fov, duration: dur, ease: cam.ease, immediateRender: false }, start);
+    // ---- camera ----------------------------------------------------------
+    chan('bg', theme.palette.bg);
+    chan('veil', 0);
+    for (let i = 0; i < 3; i++) {
+      chan(`camera.position.${i}`, prevCam.position[i]).tween(cam.from.position[i], cam.to.position[i], start, dur, cam.ease);
+      chan(`camera.lookAt.${i}`, prevCam.lookAt[i]).tween(cam.from.lookAt[i], cam.to.lookAt[i], start, dur, cam.ease);
+    }
+    chan('camera.fov', prevCam.fov).tween(cam.from.fov, cam.to.fov, start, dur, cam.ease);
 
-    // ---- veil (scene transition) -----------------------------------------
+    // ---- veil (scene transition) ----------------------------------------
     const tr = scene.transition || 'fade';
-    const veilColour = scene.veilColour || theme.palette.bg;
-    tl.set(state, { bg: veilColour }, start);
+    chan('bg').tween(theme.palette.bg, scene.veilColour || theme.palette.bg, start, 0.001, 'none');
     if (si > 0 && tr !== 'cut') {
       const veilDur = tr === 'dip' ? 0.55 : 0.32;
-      tl.set(state, { veil: 1 }, start);
-      tl.to(state, { veil: 0, duration: veilDur, ease: 'power2.out' }, start);
+      chan('veil')
+        .tween(1, 1, Math.max(0, start - 0.001), 0.001, 'none')
+        .tween(1, 0, start, veilDur, 'power2.out');
     }
     if (tr === 'dip') {
-      tl.to(state, { veil: 1, duration: 0.3, ease: 'power2.in' }, S(0.9));
-      tl.set(state, { veil: 0 }, Math.min(total, S(1) - 0.001));
+      chan('veil')
+        .tween(0, 1, S(0.9), Math.min(0.3, dur * 0.1), 'power2.in')
+        .tween(1, 0, Math.min(total - 0.002, S(1) - 0.002), 0.001, 'none');
     }
 
-    // ---- elements ---------------------------------------------------------
+    // ---- elements --------------------------------------------------------
     (scene.elements || []).forEach((el, ei) => {
       const id = el.id || `${scene.id || `s${si}`}-e${ei}`;
       const { base, target } = elementState(el);
       const enter = el.enter ?? DEFAULTS.elementOpacity.enter;
       const exit = el.exit ?? DEFAULTS.elementOpacity.exit;
-
-      // Reusing an id across scenes carries the element forward; the first
-      // scene's shape/material wins, later scenes re-pose it.
-      let st = state.elements[id];
-      if (!st) {
-        st = { position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], opacity: 0 };
-        state.elements[id] = st;
-      }
-
       const eEase = resolveEase(el.ease, cam.ease);
-      fromToVec(st.position, base.position, target.position, start, dur, eEase);
-      fromToVec(st.rotation, base.rotation, target.rotation, start, dur, eEase);
-      fromToVec(st.scale, base.scale, target.scale, start, dur, eEase);
+
+      for (let i = 0; i < 3; i++) {
+        chan(`el.${id}.position.${i}`, base.position[i]).tween(base.position[i], target.position[i], start, dur, eEase);
+        chan(`el.${id}.rotation.${i}`, base.rotation[i]).tween(base.rotation[i], target.rotation[i], start, dur, eEase);
+        chan(`el.${id}.scale.${i}`, base.scale[i]).tween(base.scale[i], target.scale[i], start, dur, eEase);
+      }
 
       const oIn = el.opacityIn ?? 0;
       const oHold = el.opacity ?? 1;
-      tl.fromTo(st, { opacity: oIn }, {
-        opacity: oHold,
-        duration: Math.max(0.001, (enter[1] - enter[0]) * dur),
-        ease: resolveEase(el.opacityEase, 'power2.out'),
-        immediateRender: false,
-      }, S(enter[0]));
+      chan(`el.${id}.opacity`, oIn)
+        .tween(oIn, oHold, S(enter[0]), Math.max(0.001, (enter[1] - enter[0]) * dur), resolveEase(el.opacityEase, 'power2.out'));
       if (!el.hold) {
-        tl.to(st, {
-          opacity: el.opacityOut ?? 0,
-          duration: Math.max(0.001, (exit[1] - exit[0]) * dur),
-          ease: 'power2.in',
-        }, S(exit[0]));
+        chan(`el.${id}.opacity`)
+          .tween(oHold, el.opacityOut ?? 0, S(exit[0]), Math.max(0.001, (exit[1] - exit[0]) * dur), 'power2.in');
       }
     });
 
-    // ---- copy -------------------------------------------------------------
+    // ---- copy ------------------------------------------------------------
     const copyItems = [];
     (scene.copy || []).forEach((item, ci) => {
       const id = item.id || `${scene.id || `s${si}`}-c${ci}`;
       const enter = item.enter ?? DEFAULTS.copyEnter;
       const exit = item.exit ?? DEFAULTS.copyExit;
       const words = String(item.text ?? '').split(/\s+/).filter(Boolean);
+      const ease = resolveEase(item.ease, 'expo.out');
 
-      let st = state.copies[id];
-      if (!st) {
-        st = { opacity: 0, y: 24, words: words.map(() => 0) };
-        state.copies[id] = st;
-      }
-
-      tl.fromTo(st, { opacity: 0, y: 26 }, {
-        opacity: 1,
-        y: 0,
-        duration: Math.max(0.001, (enter[1] - enter[0]) * dur * 0.75),
-        ease: resolveEase(item.ease, 'expo.out'),
-        immediateRender: false,
-      }, S(enter[0]));
+      chan(`copy.${id}.opacity`, 0).tween(0, 1, S(enter[0]), Math.max(0.001, (enter[1] - enter[0]) * dur * 0.75), ease);
+      chan(`copy.${id}.y`, 26).tween(26, 0, S(enter[0]), Math.max(0.001, (enter[1] - enter[0]) * dur * 0.75), ease);
 
       const stagger = item.stagger ?? DEFAULTS.wordStagger;
       const span = Math.max(0.001, (enter[1] - enter[0]) * 0.8);
       const per = words.length > 1 ? Math.min(stagger * 0.9, (span * 0.55) / words.length) : 0;
       words.forEach((_, wi) => {
-        tl.fromTo(st.words, { [wi]: 0 }, {
-          [wi]: 1,
-          duration: Math.max(0.001, span * 0.45),
-          ease: resolveEase(item.ease, 'expo.out'),
-          immediateRender: false,
-        }, S(enter[0] + wi * per));
+        chan(`copy.${id}.w${wi}`, 0).tween(0, 1, S(enter[0] + wi * per), Math.max(0.001, span * 0.45), ease);
       });
 
       if (!item.hold) {
-        tl.to(st, {
-          opacity: 0,
-          y: -20,
-          duration: Math.max(0.001, (exit[1] - exit[0]) * dur),
-          ease: 'power2.in',
-        }, S(exit[0]));
+        chan(`copy.${id}.opacity`).tween(1, 0, S(exit[0]), Math.max(0.001, (exit[1] - exit[0]) * dur), 'power2.in');
+        chan(`copy.${id}.y`).tween(0, -20, S(exit[0]), Math.max(0.001, (exit[1] - exit[0]) * dur), 'power2.in');
       }
 
       copyItems.push({ id, words, kind: item.kind || 'display', slot: item.slot || 'center-left' });
@@ -238,38 +204,71 @@ export function buildTimeline(spec) {
     cursor += dur;
   });
 
-  tl.set({}, {}, total);
+  const elementIds = [...new Set(scenes.flatMap((s, si) => (s.elements || []).map((el, ei) => el.id || `${s.id || `s${si}`}-e${ei}`)))];
+  const copyIds = [...new Set(scenes.flatMap((s, si) => {
+    const out = [];
+    (s.copy || []).forEach((item, ci) => out.push(item.id || `${s.id || `s${si}`}-c${ci}`));
+    return out;
+  }))];
+
+  // word counts, so sampling knows how many word channels to read
+  const wordCounts = {};
+  scenes.forEach((s, si) => {
+    (s.copy || []).forEach((item, ci) => {
+      const id = item.id || `${s.id || `s${si}`}-c${ci}`;
+      wordCounts[id] = String(item.text ?? '').split(/\s+/).filter(Boolean).length;
+    });
+  });
 
   const api = {
-    tl,
-    state,
     total,
     theme,
     scenes: sceneMeta,
+    channels,
 
-    /** Deterministic snapshot at story progress t (0..1). */
+    /** Deterministic snapshot at story progress t (0..1). Always plain JSON. */
     sample(t) {
       const t01 = clamp(t, 0, 1);
       const tt = t01 * total;
-      // render(t, suppressEvents, force) — force=true so a repeated seek to the
-      // same time still re-applies values. GSAP otherwise skips the update and
-      // the renderer would draw whatever happened to be in the state object.
-      tl.render(tt, true, true);
       const idx = indexAt(tt);
       const sc = sceneMeta[idx];
+
+      const camera = {
+        position: [chan('camera.position.0').at(tt), chan('camera.position.1').at(tt), chan('camera.position.2').at(tt)],
+        lookAt: [chan('camera.lookAt.0').at(tt), chan('camera.lookAt.1').at(tt), chan('camera.lookAt.2').at(tt)],
+        fov: chan('camera.fov').at(tt),
+      };
+
+      const elements = {};
+      for (const id of elementIds) {
+        elements[id] = {
+          position: [chan(`el.${id}.position.0`).at(tt), chan(`el.${id}.position.1`).at(tt), chan(`el.${id}.position.2`).at(tt)],
+          rotation: [chan(`el.${id}.rotation.0`).at(tt), chan(`el.${id}.rotation.1`).at(tt), chan(`el.${id}.rotation.2`).at(tt)],
+          scale: [chan(`el.${id}.scale.0`).at(tt), chan(`el.${id}.scale.1`).at(tt), chan(`el.${id}.scale.2`).at(tt)],
+          opacity: chan(`el.${id}.opacity`).at(tt),
+        };
+      }
+
+      const copies = {};
+      for (const id of copyIds) {
+        const words = [];
+        for (let wi = 0; wi < (wordCounts[id] || 0); wi++) words.push(chan(`copy.${id}.w${wi}`).at(tt));
+        copies[id] = {
+          opacity: chan(`copy.${id}.opacity`).at(tt),
+          y: chan(`copy.${id}.y`).at(tt),
+          words,
+        };
+      }
+
       return {
         t: tt,
         tSec: tt,
         t01,
-        bg: state.bg,
-        veil: state.veil,
-        camera: {
-          position: Array.from(state.camera.position),
-          lookAt: Array.from(state.camera.lookAt),
-          fov: state.camera.fov,
-        },
-        elements: state.elements,
-        copies: state.copies,
+        bg: chan('bg').at(tt),
+        veil: clamp(chan('veil').at(tt), 0, 1),
+        camera,
+        elements,
+        copies,
         sceneIndex: idx,
         sceneProgress: sc ? clamp((tt - sc.start) / sc.duration, 0, 1) : 0,
       };

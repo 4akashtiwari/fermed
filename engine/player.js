@@ -45,6 +45,7 @@ export async function mountFermed({ spec, root = document.body, mode = 'auto' })
     const w = overlay.stage.clientWidth || window.innerWidth;
     const h = overlay.stage.clientHeight || window.innerHeight;
     stage.setSize(w, h, renderMode ? 1 : Math.min(window.devicePixelRatio || 1, spec.render?.pixelRatioCap ?? 2));
+    overlay.layout(w, h);
   }
   fit();
   addEventListener('resize', fit);
@@ -80,6 +81,8 @@ export async function mountFermed({ spec, root = document.body, mode = 'auto' })
       sample: (t) => timeline.sample(t),
       theme,
       spec,
+      audit: () => overlay.audit(),
+      frame: () => overlay.model(),
     };
     return { timeline, stage, overlay, seek, theme, renderMode: true };
   }

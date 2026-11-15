@@ -16,6 +16,7 @@
  *
  *   --out <file>        output path                     (default: out/<slug>.mp4)
  *   --size <WxH>        frame size (overrides spec)     (default: from spec)
+ *   --aspect <name>     16:9 | 9:16 | 1:1 | 4:5 | 2.39:1 | 4:3
  *   --fps <n>           frames per second               (default: from spec)
  *   --scale <n>         CSS scale multiplier            (default: 1)
  *   --from <t>          start progress 0..1             (default: 0)
@@ -38,6 +39,7 @@ import { fileURLToPath } from 'node:url';
 
 import { validateSpec } from '../engine/schema.js';
 import { resolveScrollEase } from '../engine/easings.js';
+import { aspectSize } from '../engine/aspects.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -94,8 +96,15 @@ async function main() {
   }
 
   const slug = spec.meta.slug;
-  const W = Number(args.size?.split('x')[0]) || spec.render.width;
-  const H = Number(args.size?.split('x')[1]) || spec.render.height;
+  // Frame size precedence: --size > --aspect > spec.render (which already
+  // resolved its own aspect). A render flag never mutates the spec.
+  const aspectOverride = args.aspect ? aspectSize(String(args.aspect)) : null;
+  if (args.aspect && !aspectOverride) {
+    console.error(`[fermed] unknown aspect "${args.aspect}"`);
+    process.exit(2);
+  }
+  const W = Number(args.size?.split('x')[0]) || aspectOverride?.width || spec.render.width;
+  const H = Number(args.size?.split('x')[1]) || aspectOverride?.height || spec.render.height;
   const fps = Number(args.fps) || spec.render.fps;
   const scale = Number(args.scale) || 1;
 
@@ -104,8 +113,9 @@ async function main() {
   let server = null;
 
   if (!baseUrl) {
-    baseUrl = await startPreview();
-    server = stopServer;
+    const preview = await startPreview();
+    baseUrl = preview.url;
+    server = preview.close;
   }
 
   // ---- browser ------------------------------------------------------------
@@ -265,7 +275,9 @@ async function main() {
   }
 
   log(`encoding → ${path.relative(process.cwd(), outPath)} (h264, crf ${crf}, ${preset})`);
-  await run(ffmpegPath, ffArgs);
+  // ffmpeg-fatigue: PNG frames decoded from disk are cheap for x264, so the
+  // encoder itself should be too. `slow` stays the default for final masters.
+  await run(ffmpegPath, ffArgs, { quiet: !verbose });
 
   const stat = await fs.stat(outPath);
   const secs = ((Date.now() - started) / 1000).toFixed(1);
@@ -296,30 +308,41 @@ async function resolveFfmpeg() {
   return 'ffmpeg';
 }
 
-function run(cmd, argv) {
+function run(cmd, argv, { quiet = false } = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(cmd, argv, { stdio: ['ignore', 'inherit', 'inherit'] });
+    const child = spawn(cmd, argv, { stdio: ['ignore', 'pipe', 'pipe'] });
+    let tail = '';
+    const keep = (chunk) => {
+      const text = String(chunk);
+      tail = (tail + text).slice(-4000);
+      if (!quiet) process.stderr.write(text);
+    };
+    child.stdout.on('data', keep);
+    child.stderr.on('data', keep);
     child.on('error', reject);
-    child.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`${cmd} exited ${code}`))));
+    child.on('close', (code) => {
+      if (code === 0) return resolve();
+      // Surface only the last lines: ffmpeg's banner is 40 lines of noise.
+      const lines = tail.trim().split('\n').slice(-6).join('\n');
+      reject(new Error(`${path.basename(cmd)} exited ${code}\n${lines}`));
+    });
   });
 }
 
-/** Build once, serve statically on a free port. */
+/**
+ * Build the site and serve it statically.
+ *
+ * A Vite *dev* server keeps watchers and HMR sockets alive, which keeps the Node
+ * process alive after the render finishes (the command looked hung while it was
+ * actually done). Building once and serving the output with a plain static
+ * server gives the same pixels, no watchers, and a clean exit.
+ */
 async function startPreview() {
-  const { createServer } = await import('vite');
   log('building site…');
-  const vite = await createServer({
-    root: ROOT,
-    configFile: path.join(ROOT, 'vite.config.js'),
-    server: { port: 0, host: '127.0.0.1' },
-    logLevel: 'error',
-  });
-  await vite.listen();
-  const port = vite.config.server.port;
-  return `http://127.0.0.1:${port}`;
+  const { buildAndServe } = await import('./lib/browser.mjs');
+  const served = await buildAndServe({ force: false });
+  return { url: served.url, close: served.close };
 }
-
-let stopServer = null;
 
 main().catch((err) => {
   console.error('[fermed] render failed:', err.message);
